@@ -1,0 +1,228 @@
+// Tenant Form Component Styles
+:host {
+  display: block;
+  height: 100%;
+}
+
+.form-container {
+  max-width: 900px;
+  margin: 0 auto;
+  
+  .form-header {
+    margin-bottom: 2rem;
+    
+    h1 {
+      font-size: 1.875rem;
+      font-weight: 600;
+      color: white;
+      margin: 0;
+    }
+    
+    p {
+      color: rgb(156, 163, 175);
+      margin: 0.5rem 0 0 0;
+    }
+  }
+  
+  .form-section {
+    background: rgba(31, 41, 55, 0.8);
+    border: 1px solid rgba(75, 85, 99, 0.4);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(10px);
+    
+    .section-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: white;
+      margin: 0 0 1.5rem 0;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(75, 85, 99, 0.4);
+    }
+  }
+  
+  .form-group {
+    margin-bottom: 1.5rem;
+    
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: rgb(229, 231, 235);
+      margin-bottom: 0.5rem;
+      
+      .required {
+        color: rgb(239, 68, 68);
+        margin-left: 0.25rem;
+      }
+    }
+    
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: rgba(17, 24, 39, 0.8);
+      border: 1px solid rgba(75, 85, 99, 0.4);
+      border-radius: 0.5rem;
+      color: white;
+      font-size: 0.875rem;
+      transition: all 0.3s ease;
+      
+      &:focus {
+        outline: none;
+        background: rgba(17, 24, 39, 0.95);
+        border-color: rgb(147, 51, 234);
+        box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+      }
+      
+      &:disabled {
+        background: rgba(75, 85, 99, 0.2);
+        color: rgb(156, 163, 175);
+        cursor: not-allowed;
+      }
+      
+      &::placeholder {
+        color: rgb(107, 114, 128);
+      }
+    }
+    
+    &.has-error {
+      input,
+      select,
+      textarea {
+        border-color: rgb(239, 68, 68);
+        
+        &:focus {
+          box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+      }
+      
+      .error-message {
+        display: block;
+        color: rgb(239, 68, 68);
+        font-size: 0.75rem;
+        margin-top: 0.375rem;
+      }
+    }
+  }
+  
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+    
+    &.full-width {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      
+      input[type="checkbox"] {
+        width: auto;
+        margin-right: 0.75rem;
+        cursor: pointer;
+      }
+      
+      label {
+        margin: 0;
+        cursor: pointer;
+        color: rgb(229, 231, 235);
+        
+        &:hover {
+          color: white;
+        }
+      }
+    }
+  }
+  
+  .form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(75, 85, 99, 0.4);
+    
+    button {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      
+      &.btn-primary {
+        background: linear-gradient(135deg, rgb(147, 51, 234), rgb(236, 72, 153));
+        color: white;
+        
+        &:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(147, 51, 234, 0.3);
+        }
+        
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+      
+      &.btn-secondary {
+        background: rgba(75, 85, 99, 0.2);
+        color: rgb(229, 231, 235);
+        
+        &:hover:not(:disabled) {
+          background: rgba(75, 85, 99, 0.3);
+        }
+      }
+    }
+  }
+  
+  .error-banner {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgb(239, 68, 68);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    color: rgb(254, 202, 202);
+    font-size: 0.875rem;
+  }
+  
+  .loading-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem;
+    color: rgb(156, 163, 175);
+    
+    .spinner {
+      width: 2rem;
+      height: 2rem;
+      border: 2px solid rgba(147, 51, 234, 0.2);
+      border-top-color: rgb(147, 51, 234);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 1rem;
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

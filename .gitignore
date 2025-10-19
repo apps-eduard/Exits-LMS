@@ -1,0 +1,20 @@
+node_modules/
+.env
+.env.local
+.env.*.local
+*.log
+.DS_Store
+dist/
+build/
+coverage/
+.angular/
+.vscode/
+*.swp
+*.swo
+*~
+.idea/
+
+# Environment files - keep examples only
+!.env.example
+!backend/.env.example
+!frontend/.env.example

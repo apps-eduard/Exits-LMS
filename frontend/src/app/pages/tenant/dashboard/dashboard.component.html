@@ -1,0 +1,169 @@
+<div class="p-4 lg:p-6 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+  <!-- Compact Header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+      <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Organization overview & metrics</p>
+    </div>
+    <button class="px-3 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-xs font-semibold rounded-lg hover:shadow-lg transition">
+      � Refresh
+    </button>
+  </div>
+
+  <!-- Compact Metrics Grid -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div *ngFor="let metric of metrics()" class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-3 transition-colors">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-lg">{{ metric.icon }}</span>
+        <span class="text-xs font-bold" [class.text-green-400]="metric.changeType === 'increase'" [class.text-red-400]="metric.changeType === 'decrease'">
+          {{ metric.change }}
+        </span>
+      </div>
+      <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">{{ metric.title }}</p>
+      <p class="text-lg font-bold text-gray-900 dark:text-white">{{ metric.value }}</p>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+    
+    <!-- Monthly Trend Chart -->
+    <div class="lg:col-span-2 bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 transition-colors">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-sm font-bold text-gray-900 dark:text-white">📈 Loan Disbursements</h2>
+        <span class="text-xs text-gray-600 dark:text-gray-400">Last 6 months</span>
+      </div>
+
+      <div class="flex items-end justify-between h-40 gap-2">
+        <div *ngFor="let data of monthlyData()" class="flex-1 flex flex-col items-center gap-1 group">
+          <div class="text-xs text-gray-600 dark:text-gray-400">{{ data.value }}%</div>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-t-lg relative group-hover:opacity-80 transition-all" 
+               [style.height.%]="getChartHeight(data.value)">
+            <div [ngClass]="'bg-gradient-to-t ' + data.color" class="w-full h-full opacity-80"></div>
+          </div>
+          <div class="text-xs text-gray-600 dark:text-gray-400">{{ data.label }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loan Status -->
+    <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 transition-colors">
+      <h2 class="text-sm font-bold text-gray-900 dark:text-white mb-4">🎯 Loan Status</h2>
+
+      <div class="space-y-3">
+        <div *ngFor="let item of loanStatusData()" class="group">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs text-gray-600 dark:text-gray-400">{{ item.label }}</span>
+            <span class="text-xs font-bold text-gray-900 dark:text-white">{{ item.value }}</span>
+          </div>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+            <div [class]="'h-full ' + item.color" [style.width.%]="getPercentage(item.value)"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <p class="text-xs text-gray-600 dark:text-gray-400">Total Loans</p>
+        <p class="text-xl font-bold text-gray-900 dark:text-white">{{ getTotalLoans() }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions & Recent Activity -->
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+    
+    <!-- Quick Actions -->
+    <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 transition-colors">
+      <h2 class="text-sm font-bold text-gray-900 dark:text-white mb-3">⚡ Quick Actions</h2>
+      
+      <div class="space-y-2">
+        <a *ngFor="let action of quickActions()" 
+           [routerLink]="action.link"
+           class="block p-2.5 rounded-lg text-xs font-medium transition-all hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-transparent dark:hover:border-gray-600 text-gray-900 dark:text-white">
+          <div class="text-lg mb-1">{{ action.icon }}</div>
+          <div>{{ action.title }}</div>
+          <div class="text-gray-600 dark:text-gray-400 text-xs">{{ action.description }}</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="lg:col-span-3 bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 transition-colors">
+      <h2 class="text-sm font-bold text-gray-900 dark:text-white mb-3">📋 Recent Activity</h2>
+
+      <div class="space-y-2 max-h-64 overflow-y-auto">
+        <div *ngFor="let activity of recentActivities()" 
+             class="p-2.5 rounded-lg bg-gray-100 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-all text-xs">
+          
+          <div class="flex items-start gap-3">
+            <div class="text-lg flex-shrink-0">{{ activity.icon }}</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-2 mb-0.5">
+                <h3 class="font-bold text-gray-900 dark:text-white">{{ activity.title }}</h3>
+                <span class="text-xs font-bold px-2 py-0.5 rounded flex-shrink-0 whitespace-nowrap"
+                      [ngClass]="{
+                        'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300': activity.status === 'completed',
+                        'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300': activity.status === 'pending',
+                        'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300': activity.status === 'failed'
+                      }">
+                  {{ activity.status === 'completed' ? '✓' : activity.status === 'pending' ? '⏳' : '✗' }}
+                </span>
+              </div>
+              <p class="text-gray-600 dark:text-gray-400 mb-1">{{ activity.description }}</p>
+              <div class="flex items-center justify-between text-gray-500 dark:text-gray-500">
+                <p>{{ activity.timestamp }}</p>
+                <p *ngIf="activity.amount" class="font-bold text-gray-900 dark:text-white">{{ activity.amount }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Customers -->
+  <div class="mt-4 bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 transition-colors">
+    <h2 class="text-sm font-bold text-gray-900 dark:text-white mb-4">👥 Top Performing Customers</h2>
+    
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs">
+        <thead class="bg-gray-100 dark:bg-gray-900/50">
+          <tr class="border-b border-gray-200 dark:border-gray-700">
+            <th class="text-left px-3 py-2 text-gray-600 dark:text-gray-400 font-semibold">Name</th>
+            <th class="text-left px-3 py-2 text-gray-600 dark:text-gray-400 font-semibold">Active Loans</th>
+            <th class="text-left px-3 py-2 text-gray-600 dark:text-gray-400 font-semibold">Portfolio</th>
+            <th class="text-left px-3 py-2 text-gray-600 dark:text-gray-400 font-semibold">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let customer of topCustomers()" class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+            <td class="px-3 py-2">
+              <div class="flex items-center gap-2">
+                <div class="w-6 h-6 bg-gradient-to-br rounded text-xs flex items-center justify-center text-white font-bold"
+                     [ngClass]="{
+                       'from-blue-500 to-blue-600': customer.color === 'blue',
+                       'from-purple-500 to-purple-600': customer.color === 'purple',
+                       'from-green-500 to-green-600': customer.color === 'green'
+                     }">
+                  {{ customer.initials }}
+                </div>
+                <span class="text-gray-900 dark:text-white font-medium">{{ customer.name }}</span>
+              </div>
+            </td>
+            <td class="px-3 py-2 text-gray-600 dark:text-gray-300">{{ customer.loans }}</td>
+            <td class="px-3 py-2 text-gray-600 dark:text-gray-300">{{ customer.portfolio }}</td>
+            <td class="px-3 py-2">
+              <span class="text-xs font-bold"
+                    [ngClass]="{
+                      'text-green-600 dark:text-green-400': customer.status === 'perfect',
+                      'text-orange-600 dark:text-orange-400': customer.status === 'warning'
+                    }">
+                {{ customer.statusLabel }}
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

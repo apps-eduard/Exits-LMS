@@ -1,0 +1,88 @@
+<div class="p-4 lg:p-6 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+  <!-- Compact Header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+      <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Platform overview & metrics</p>
+    </div>
+    <button class="px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold rounded-lg hover:shadow-lg transition">
+      🔄 Refresh
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="flex items-center justify-center py-8">
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!loading()">
+    <!-- Compact Stats Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div *ngFor="let stat of stats()" class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-3 transition-colors">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-lg">{{ stat.icon }}</span>
+          <span class="text-xs font-bold" [class.text-green-400]="stat.changeType === 'increase'" [class.text-red-400]="stat.changeType === 'decrease'">
+            {{ stat.change }}
+          </span>
+        </div>
+        <p class="text-xs text-gray-600 dark:text-gray-400 mb-1">{{ stat.label }}</p>
+        <p class="text-lg font-bold text-gray-900 dark:text-white">{{ stat.value }}</p>
+      </div>
+    </div>
+
+    <!-- Recent Tenants - Compact Table -->
+    <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors">
+      <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+        <h2 class="text-sm font-bold text-gray-900 dark:text-white">Recent Tenants</h2>
+        <a routerLink="/super-admin/tenants" class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium transition-colors">
+          View All →
+        </a>
+      </div>
+
+      <div *ngIf="recentTenants().length === 0" class="px-4 py-6 text-center">
+        <p class="text-xs text-gray-600 dark:text-gray-400">No tenants yet</p>
+      </div>
+
+      <div *ngIf="recentTenants().length > 0" class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead class="bg-gray-100 dark:bg-gray-900/50">
+            <tr class="border-b border-gray-200 dark:border-gray-700">
+              <th class="text-left px-4 py-2 text-gray-600 dark:text-gray-400 font-semibold">Name</th>
+              <th class="text-left px-4 py-2 text-gray-600 dark:text-gray-400 font-semibold">Status</th>
+              <th class="text-left px-4 py-2 text-gray-600 dark:text-gray-400 font-semibold">Modules</th>
+              <th class="text-left px-4 py-2 text-gray-600 dark:text-gray-400 font-semibold">Plan</th>
+              <th class="text-left px-4 py-2 text-gray-600 dark:text-gray-400 font-semibold">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tenant of recentTenants()" class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+              <td class="px-4 py-2">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded text-xs flex items-center justify-center text-white font-bold">
+                    {{ getInitials(tenant.name) }}
+                  </div>
+                  <span class="text-gray-900 dark:text-white font-medium">{{ tenant.name }}</span>
+                </div>
+              </td>
+              <td class="px-4 py-2">
+                <span [ngClass]="getStatusBadgeClass(tenant.status)" class="px-2 py-1 rounded text-xs font-medium">{{ tenant.status }}</span>
+              </td>
+              <td class="px-4 py-2 text-gray-600 dark:text-gray-300">
+                {{ getActiveModulesCount(tenant) }}/{{ getTotalModulesCount(tenant) }}
+              </td>
+              <td class="px-4 py-2 text-gray-600 dark:text-gray-300">
+                {{ tenant.subscription_plan || 'N/A' }}
+              </td>
+              <td class="px-4 py-2">
+                <a [routerLink]="['/super-admin/tenants', tenant.id]" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium transition-colors">
+                  View
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
