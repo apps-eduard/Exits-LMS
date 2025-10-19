@@ -92,8 +92,24 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/tenant/users/tenant-users.component').then(m => m.TenantUsersComponent)
       },
       {
+        path: 'users/create',
+        loadComponent: () => import('./pages/tenant/users/user-form.component').then(m => m.UserFormComponent)
+      },
+      {
+        path: 'users/:id/edit',
+        loadComponent: () => import('./pages/tenant/users/user-form.component').then(m => m.UserFormComponent)
+      },
+      {
         path: 'customers',
         loadComponent: () => import('./pages/tenant/customers/tenant-customers.component').then(m => m.TenantCustomersComponent)
+      },
+      {
+        path: 'customers/create',
+        loadComponent: () => import('./pages/tenant/customers/customer-form.component').then(m => m.CustomerFormComponent)
+      },
+      {
+        path: 'customers/:id/edit',
+        loadComponent: () => import('./pages/tenant/customers/customer-form.component').then(m => m.CustomerFormComponent)
       },
       {
         path: 'customers-loans',

@@ -1,7 +1,13 @@
 const db = require('../config/database');
+const logger = require('../utils/logger');
 
 const getAllCustomers = async (req, res) => {
   try {
+    logger.trace('getAllCustomers', 'ENTER', {
+      tenantId: req.tenantId,
+      query: req.query,
+    });
+
     const { search, status } = req.query;
     const tenantId = req.tenantId || req.query.tenantId;
     
@@ -31,18 +37,33 @@ const getAllCustomers = async (req, res) => {
     
     const result = await db.query(query, params);
     
+    logger.success('Customers fetched successfully', {
+      tenantId,
+      count: result.rows.length,
+      filters: { search: !!search, status },
+    });
+
     res.json({
       success: true,
       customers: result.rows,
     });
   } catch (error) {
-    console.error('Get customers error:', error);
+    logger.error('Failed to fetch customers', {
+      tenantId: req.tenantId,
+      message: error.message,
+      code: error.code,
+    });
     res.status(500).json({ error: 'Failed to fetch customers' });
   }
 };
 
 const getCustomerById = async (req, res) => {
   try {
+    logger.trace('getCustomerById', 'ENTER', {
+      customerId: req.params.id,
+      tenantId: req.tenantId,
+    });
+
     const { id } = req.params;
     const tenantId = req.tenantId || req.query.tenantId;
     
@@ -58,6 +79,7 @@ const getCustomerById = async (req, res) => {
     );
     
     if (result.rows.length === 0) {
+      logger.warn('Customer not found', { customerId: id, tenantId });
       return res.status(404).json({ error: 'Customer not found' });
     }
     
@@ -70,7 +92,13 @@ const getCustomerById = async (req, res) => {
        ORDER BY l.created_at DESC`,
       [id, tenantId]
     );
-    
+
+    logger.success('Customer fetched successfully', {
+      customerId: result.rows[0].id,
+      email: result.rows[0].email,
+      loanCount: loansResult.rows.length,
+    });
+
     res.json({
       success: true,
       customer: {
@@ -79,70 +107,152 @@ const getCustomerById = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get customer error:', error);
+    logger.error('Failed to fetch customer', {
+      customerId: req.params.id,
+      tenantId: req.tenantId,
+      message: error.message,
+      code: error.code,
+    });
     res.status(500).json({ error: 'Failed to fetch customer' });
   }
 };
 
 const createCustomer = async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, address, idNumber } = req.body;
+    logger.trace('createCustomer', 'ENTER', {
+      tenantId: req.tenantId,
+      body: req.body,
+    });
+
+    const {
+      first_name,
+      last_name,
+      email,
+      phone,
+      id_number,
+      street_address,
+      barangay,
+      city,
+      province,
+      region,
+      postal_code,
+      country
+    } = req.body;
     const tenantId = req.tenantId || req.body.tenantId;
-    
-    if (!firstName || !lastName) {
+
+    if (!first_name || !last_name) {
+      logger.warn('Customer creation failed: missing required fields', {
+        first_name: !!first_name,
+        last_name: !!last_name,
+      });
       return res.status(400).json({ error: 'First name and last name required' });
     }
-    
+
+    // Build address string from components
+    const addressParts = [street_address, barangay, city, province, region, postal_code, country]
+      .filter(part => part && part.trim())
+      .join(', ');
+
     const result = await db.query(
-      `INSERT INTO customers (tenant_id, first_name, last_name, email, phone, address, id_number, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO customers (tenant_id, first_name, last_name, email, phone, id_number, address, status, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'active', $8)
        RETURNING *`,
-      [tenantId, firstName, lastName, email, phone, address, idNumber, req.user.id]
+      [tenantId, first_name, last_name, email || null, phone || null, id_number || null, addressParts || null, req.user.id]
     );
-    
+
+    logger.success('Customer created successfully', {
+      customerId: result.rows[0].id,
+      email: result.rows[0].email,
+      name: `${result.rows[0].first_name} ${result.rows[0].last_name}`,
+    });
+
     res.status(201).json({
       success: true,
       customer: result.rows[0],
       message: 'Customer created successfully',
     });
   } catch (error) {
-    console.error('Create customer error:', error);
+    logger.error('Failed to create customer', {
+      message: error.message,
+      code: error.code,
+      tenantId: req.tenantId,
+    });
     res.status(500).json({ error: 'Failed to create customer' });
   }
 };
 
 const updateCustomer = async (req, res) => {
   try {
+    logger.trace('updateCustomer', 'ENTER', {
+      customerId: req.params.id,
+      tenantId: req.tenantId,
+    });
+
     const { id } = req.params;
-    const { firstName, lastName, email, phone, address, idNumber, status } = req.body;
+    const {
+      first_name,
+      last_name,
+      email,
+      phone,
+      id_number,
+      street_address,
+      barangay,
+      city,
+      province,
+      region,
+      postal_code,
+      country,
+      status
+    } = req.body;
     const tenantId = req.tenantId || req.body.tenantId;
-    
+
+    // Build address string from components
+    let addressValue = null;
+    if (street_address || barangay || city || province || region || postal_code || country) {
+      const addressParts = [street_address, barangay, city, province, region, postal_code, country]
+        .filter(part => part && part.trim())
+        .join(', ');
+      addressValue = addressParts || null;
+    }
+
     const result = await db.query(
       `UPDATE customers 
        SET first_name = COALESCE($1, first_name),
            last_name = COALESCE($2, last_name),
            email = COALESCE($3, email),
            phone = COALESCE($4, phone),
-           address = COALESCE($5, address),
-           id_number = COALESCE($6, id_number),
+           id_number = COALESCE($5, id_number),
+           address = COALESCE($6, address),
            status = COALESCE($7, status),
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $8 AND tenant_id = $9
        RETURNING *`,
-      [firstName, lastName, email, phone, address, idNumber, status, id, tenantId]
+      [first_name || null, last_name || null, email || null, phone || null, id_number || null, addressValue, status || null, id, tenantId]
     );
-    
+
     if (result.rows.length === 0) {
+      logger.warn('Customer not found for update', { customerId: id, tenantId });
       return res.status(404).json({ error: 'Customer not found' });
     }
-    
+
+    logger.success('Customer updated successfully', {
+      customerId: result.rows[0].id,
+      email: result.rows[0].email,
+      name: `${result.rows[0].first_name} ${result.rows[0].last_name}`,
+    });
+
     res.json({
       success: true,
       customer: result.rows[0],
       message: 'Customer updated successfully',
     });
   } catch (error) {
-    console.error('Update customer error:', error);
+    logger.error('Failed to update customer', {
+      message: error.message,
+      code: error.code,
+      customerId: req.params.id,
+      tenantId: req.tenantId,
+    });
     res.status(500).json({ error: 'Failed to update customer' });
   }
 };

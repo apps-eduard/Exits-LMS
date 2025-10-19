@@ -6,6 +6,8 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const db = require('./config/database');
+const logger = require('./utils/logger');
+const httpLogger = require('./middleware/httpLogger');
 
 // Import routes
 const authRoutes = require('./routes/auth.routes');
@@ -38,6 +40,9 @@ app.use('/api/', limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// HTTP Logging
+app.use(httpLogger);
+
 // Logging
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -62,7 +67,13 @@ app.use((req, res) => {
 
 // Global error handler
 app.use((err, req, res, next) => {
-  console.error('Global error:', err);
+  logger.error('Global error caught', {
+    message: err.message,
+    status: err.status || 500,
+    method: req.method,
+    path: req.path,
+    ip: req.ip,
+  });
   res.status(err.status || 500).json({
     error: err.message || 'Internal server error',
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
@@ -72,17 +83,30 @@ app.use((err, req, res, next) => {
 // Start server
 const startServer = async () => {
   try {
+    logger.section('Server Startup');
+
     // Test database connection
     await db.query('SELECT NOW()');
-    console.log('✅ Database connected successfully');
+    logger.success('Database connected successfully', {
+      host: process.env.DB_HOST,
+      database: process.env.DB_NAME,
+      port: process.env.DB_PORT,
+    });
 
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📍 Environment: ${process.env.NODE_ENV}`);
-      console.log(`🔗 API: http://localhost:${PORT}/api`);
+      logger.success('Express server started', {
+        port: PORT,
+        environment: process.env.NODE_ENV,
+        apiUrl: `http://localhost:${PORT}/api`,
+        corsOrigin: process.env.FRONTEND_URL || 'http://localhost:4200',
+      });
+      logger.section('Ready for requests');
     });
   } catch (error) {
-    console.error('❌ Failed to start server:', error);
+    logger.error('Failed to start server', {
+      message: error.message,
+      code: error.code,
+    });
     process.exit(1);
   }
 };

@@ -1,9 +1,11 @@
 const bcrypt = require('bcryptjs');
 const db = require('../config/database');
+const logger = require('../utils/logger');
 
 // Get all users (platform-wide - super admin only)
 const getAllUsers = async (req, res) => {
   try {
+    logger.trace('getAllUsers', 'ENTER', { query: req.query, userId: req.user?.id });
     const { search, role, status } = req.query;
 
     let query = `
@@ -41,12 +43,26 @@ const getAllUsers = async (req, res) => {
 
     const result = await db.query(query, params);
 
+    logger.success('Fetched all users', {
+      count: result.rows.length,
+      filters: { search: !!search, role: !!role, status },
+    });
+
+    logger.apiResponse('getAllUsers', 200, {
+      success: true,
+      count: result.rows.length,
+    });
+
     res.json({
       success: true,
       users: result.rows,
     });
   } catch (error) {
-    console.error('Get users error:', error);
+    logger.error('Failed to fetch users', {
+      message: error.message,
+      code: error.code,
+      userId: req.user?.id,
+    });
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 };
@@ -55,6 +71,7 @@ const getAllUsers = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
+    logger.trace('getUserById', 'ENTER', { userId: id, requestedBy: req.user?.id });
 
     const userResult = await db.query(
       `SELECT u.id, u.email, u.first_name, u.last_name, u.phone, u.is_active,
@@ -71,15 +88,26 @@ const getUserById = async (req, res) => {
     );
 
     if (userResult.rows.length === 0) {
+      logger.warn('User not found', { userId: id });
       return res.status(404).json({ error: 'User not found' });
     }
+
+    logger.success('User fetched successfully', {
+      userId: id,
+      email: userResult.rows[0].email,
+      role: userResult.rows[0].role_name,
+    });
 
     res.json({
       success: true,
       user: userResult.rows[0],
     });
   } catch (error) {
-    console.error('Get user error:', error);
+    logger.error('Failed to fetch user', {
+      userId: req.params.id,
+      message: error.message,
+      code: error.code,
+    });
     res.status(500).json({ error: 'Failed to fetch user' });
   }
 };
