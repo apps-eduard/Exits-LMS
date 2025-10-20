@@ -38,6 +38,54 @@ const checkPermission = (requiredPermission) => {
   };
 };
 
+/**
+ * Check if user has ANY of the required permissions (OR logic)
+ * Useful for backward compatibility during permission migration
+ * @param {string[]} requiredPermissions - Array of permission names (checks if user has ANY)
+ */
+const checkPermissionOr = (requiredPermissions) => {
+  return async (req, res, next) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      // Ensure requiredPermissions is an array
+      const permissions = Array.isArray(requiredPermissions) ? requiredPermissions : [requiredPermissions];
+
+      console.log(`[RBAC] Checking permissions (OR): ${permissions.join(' OR ')} for user: ${req.user.email}, scope: ${req.user.roleScope}`);
+
+      // Super Admin with platform scope has all permissions
+      if (req.user.roleScope === 'platform') {
+        console.log('[RBAC] ✅ Platform admin - all permissions granted');
+        return next();
+      }
+
+      // Check if user's role has ANY of the required permissions
+      const permissionCheck = await db.query(
+        `SELECT p.name 
+         FROM permissions p
+         JOIN role_permissions rp ON p.id = rp.permission_id
+         WHERE rp.role_id = $1 AND p.name = ANY($2)`,
+        [req.user.roleId, permissions]
+      );
+
+      if (permissionCheck.rows.length === 0) {
+        console.log(`[RBAC] ❌ Permission denied: None of [${permissions.join(', ')}] granted for user role ID: ${req.user.roleId}`);
+        return res.status(403).json({ 
+          error: `Insufficient permissions. Required one of: ${permissions.join(', ')}` 
+        });
+      }
+
+      console.log(`[RBAC] ✅ Permission granted: ${permissionCheck.rows[0].name} (matched from [${permissions.join(', ')}])`);
+      next();
+    } catch (error) {
+      console.error('Permission check error:', error);
+      res.status(500).json({ error: 'Permission check failed' });
+    }
+  };
+};
+
 const checkScope = (requiredScope) => {
   return (req, res, next) => {
     if (!req.user) {
@@ -60,5 +108,6 @@ const checkScope = (requiredScope) => {
 
 module.exports = {
   checkPermission,
+  checkPermissionOr,
   checkScope,
 };

@@ -53,24 +53,42 @@ const seedData = async () => {
 
     // Create Permissions
     const permissions = [
-      // Platform permissions
+      // Platform permissions - Tenant Management (Parent + 4 children)
       { name: 'manage_tenants', resource: 'tenants', action: 'manage', description: 'Manage all tenants' },
-      { name: 'view_audit_logs', resource: 'audit_logs', action: 'view', description: 'View all audit logs' },
-      { name: 'manage_platform_settings', resource: 'settings', action: 'manage', description: 'Manage platform settings' },
+      { name: 'view_tenants', resource: 'tenants', action: 'view', description: 'View all tenants (child of manage_tenants)' },
+      { name: 'create_tenants', resource: 'tenants', action: 'create', description: 'Create new tenants (child of manage_tenants)' },
+      { name: 'edit_tenants', resource: 'tenants', action: 'edit', description: 'Edit tenant information (child of manage_tenants)' },
+      { name: 'delete_tenants', resource: 'tenants', action: 'delete', description: 'Delete tenants (child of manage_tenants)' },
       
-      // Tenant permissions
-      { name: 'manage_users', resource: 'users', action: 'manage', description: 'Manage tenant users' },
+      // Platform permissions - System Team/Users (Parent + 2 children)
+      { name: 'manage_users', resource: 'users', action: 'manage', description: 'Manage system users' },
+      { name: 'view_users', resource: 'users', action: 'view', description: 'View system users (child of manage_users)' },
+      { name: 'edit_users', resource: 'users', action: 'edit', description: 'Edit system user information (child of manage_users)' },
+      
+      // Platform permissions - System Settings (Parent + 3 children)
+      { name: 'manage_platform_settings', resource: 'settings', action: 'manage', description: 'Manage platform settings' },
+      { name: 'view_platform_settings', resource: 'settings', action: 'view', description: 'View platform settings (child of manage_platform_settings)' },
+      { name: 'edit_platform_settings', resource: 'settings', action: 'edit', description: 'Edit platform settings (child of manage_platform_settings)' },
+      { name: 'export_settings', resource: 'settings', action: 'export', description: 'Export settings configuration (child of manage_platform_settings)' },
+      
+  // Platform permissions - Menu Management (Parent + 2 children only)
+  { name: 'manage_menus', resource: 'menus', action: 'manage', description: 'Full menu management access' },
+  { name: 'view_menus', resource: 'menus', action: 'view', description: 'View menu configuration (child of manage_menus)' },
+  { name: 'edit_menus', resource: 'menus', action: 'edit', description: 'Edit menu properties: name, icon, parent, order, status (child of manage_menus)' },      // Platform permissions - Audit & Compliance (Standalone)
+      { name: 'view_audit_logs', resource: 'audit_logs', action: 'view', description: 'View all audit logs' },
+      
+      // Tenant permissions (Parent -> Child hierarchy)
       { name: 'manage_customers', resource: 'customers', action: 'manage', description: 'Manage customers' },
-      { name: 'view_customers', resource: 'customers', action: 'view', description: 'View customers' },
+      { name: 'view_customers', resource: 'customers', action: 'view', description: 'View customers (child of manage_customers)' },
       { name: 'manage_loans', resource: 'loans', action: 'manage', description: 'Manage loans' },
-      { name: 'approve_loans', resource: 'loans', action: 'approve', description: 'Approve loans' },
-      { name: 'view_loans', resource: 'loans', action: 'view', description: 'View loans' },
+      { name: 'approve_loans', resource: 'loans', action: 'approve', description: 'Approve loans (child of manage_loans)' },
+      { name: 'view_loans', resource: 'loans', action: 'view', description: 'View loans (child of manage_loans)' },
       { name: 'process_payments', resource: 'payments', action: 'process', description: 'Process payments' },
-      { name: 'view_payments', resource: 'payments', action: 'view', description: 'View payments' },
+      { name: 'view_payments', resource: 'payments', action: 'view', description: 'View payments (child of process_payments)' },
       { name: 'manage_loan_products', resource: 'loan_products', action: 'manage', description: 'Manage loan products' },
       { name: 'manage_bnpl_merchants', resource: 'bnpl_merchants', action: 'manage', description: 'Manage BNPL merchants' },
       { name: 'manage_bnpl_orders', resource: 'bnpl_orders', action: 'manage', description: 'Manage BNPL orders' },
-      { name: 'view_bnpl_orders', resource: 'bnpl_orders', action: 'view', description: 'View BNPL orders' },
+      { name: 'view_bnpl_orders', resource: 'bnpl_orders', action: 'view', description: 'View BNPL orders (child of manage_bnpl_orders)' },
       { name: 'view_reports', resource: 'reports', action: 'view', description: 'View reports' },
     ];
 

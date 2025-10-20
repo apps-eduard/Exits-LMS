@@ -251,6 +251,49 @@ Write-Host "  Email (SMTP host, port, sender email/name)" -ForegroundColor Gray
 Write-Host "  Features (email notifications, 2FA, modules, analytics)" -ForegroundColor Gray
 Write-Host "  Security (password length, session timeout, login attempts)" -ForegroundColor Gray
 
+# Seed menu data
+Write-Host ""
+Write-Host "Seeding application menus..." -ForegroundColor Yellow
+Write-Host "This will populate comprehensive menu structure:" -ForegroundColor Cyan
+Write-Host "  Platform Menus (30 total):" -ForegroundColor Gray
+Write-Host "    - Overview: Dashboard, Audit Logs" -ForegroundColor Gray
+Write-Host "    - Tenant Management: All Tenants, Active, Suspended, Create" -ForegroundColor Gray
+Write-Host "    - Analytics & Reports: System Analytics, Revenue, User Activity, Tenant Usage" -ForegroundColor Gray
+Write-Host "    - Billing & Subscriptions: Subscriptions, Plans, Invoices, Payments" -ForegroundColor Gray
+Write-Host "    - Notifications: System Notifications, Alerts, Announcements" -ForegroundColor Gray
+Write-Host "    - System Health: Health Check, Performance Metrics, Error Logs, Background Jobs" -ForegroundColor Gray
+Write-Host "    - Settings: System Roles, Menu Management, Email Config, Security, API Management" -ForegroundColor Gray
+Write-Host "    - System Team: Team Members, Activity Logs" -ForegroundColor Gray
+Write-Host "  Tenant Menus (37 total):" -ForegroundColor Gray
+Write-Host "    - Customers: All Customers, Active, Inactive, New, KYC" -ForegroundColor Gray
+Write-Host "    - Loans: All Loans, Active, Pending, Completed, Applications" -ForegroundColor Gray
+Write-Host "    - Payments: All Payments, Pending, Completed, Failed, Reconciliation" -ForegroundColor Gray
+Write-Host "    - Reports & Analytics: Dashboard, Financial, Customer, Loan, Payment Reports" -ForegroundColor Gray
+Write-Host "    - Communications: Email Campaigns, SMS, Push Notifications, Templates" -ForegroundColor Gray
+Write-Host "    - Advanced Features: Automation Rules, Workflows, Integrations, API Access" -ForegroundColor Gray
+Write-Host "    - Documents: Document Library, Templates, Compliance Documents" -ForegroundColor Gray
+Write-Host "    - Settings: Organization, Company Profile, Billing, Roles, Team" -ForegroundColor Gray
+Write-Host ""
+npm run seed:menus 2>&1
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "Menu seeding failed!" -ForegroundColor Red
+    Write-Host "Please check the error messages above" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Note: You can manually seed menus later by running:" -ForegroundColor Yellow
+    Write-Host "  cd backend && npm run seed:menus" -ForegroundColor Gray
+} else {
+    Write-Host "Application menus seeded successfully" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Menu Structure Summary:" -ForegroundColor Cyan
+    Write-Host "  Total Menus: 67 (30 platform + 37 tenant)" -ForegroundColor Gray
+    Write-Host "  Parent Menus: 18 root sections" -ForegroundColor Gray
+    Write-Host "  Child Menus: 49 sub-menu items" -ForegroundColor Gray
+    Write-Host "  Access: Menu Management at /super-admin/settings/menus" -ForegroundColor Gray
+    Write-Host "  Features: Edit-only UI (name, icon, parent, order, status)" -ForegroundColor Gray
+}
+
 # Navigate back
 Set-Location -Path ".."
 

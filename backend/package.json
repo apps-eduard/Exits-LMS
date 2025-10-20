@@ -9,7 +9,8 @@
     "test": "jest --coverage",
     "migrate": "node scripts/migrate.js",
     "seed": "node scripts/seed.js",
-    "seed:settings": "node scripts/seed-settings.js"
+    "seed:settings": "node scripts/seed-settings.js",
+    "seed:menus": "node scripts/seed-menus.js"
   },
   "keywords": [
     "loan-management",

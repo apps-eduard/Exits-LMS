@@ -146,18 +146,34 @@
         <div *ngIf="!loadingPermissions()" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <!-- Dynamic Categories -->
           <div *ngFor="let item of getAllPermissionCategories()" 
-               class="bg-gray-700/30 rounded-lg p-3">
-            <h4 class="text-xs font-bold text-purple-400 mb-2">
+               class="bg-gray-700/30 rounded-lg p-3 border border-gray-600/30">
+            <h4 class="text-xs font-bold text-purple-400 mb-3">
               {{ item.category }}
-              <span class="text-gray-500">({{ item.permissions.length }})</span>
+              <span class="text-gray-500">({{ getVisiblePermissionCount(item.permissions) }})</span>
             </h4>
+            
             <div class="space-y-2">
-              <label *ngFor="let perm of item.permissions"
-                     class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer hover:text-white transition">
-                <input type="checkbox" [checked]="hasPermission(perm.name)"
-                       (change)="togglePermission(perm.name)" class="w-3 h-3 accent-purple-600">
-                <span title="{{ perm.description }}">{{ perm.name | titlecase }}</span>
-              </label>
+              <div *ngFor="let perm of item.permissions">
+                <!-- ONLY SHOW CHILD PERMISSIONS (not parent) -->
+                <div *ngIf="isChildPermission(perm.name)">
+                  <!-- Get the parent of this child -->
+                  <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer hover:text-white transition p-2 rounded hover:bg-gray-600/20">
+                    <!-- Child can only be checked if parent is checked -->
+                    <input type="checkbox" 
+                           [checked]="hasPermission(perm.name)"
+                           [disabled]="!isParentOfChildChecked(perm.name)"
+                           (change)="togglePermission(perm.name)" 
+                           class="w-3 h-3 accent-blue-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span title="{{ perm.description }}" class="text-gray-400">
+                      🔗 {{ perm.name | titlecase }}
+                    </span>
+                    <span *ngIf="!isParentOfChildChecked(perm.name)" class="text-xs text-gray-600 ml-auto">(enable parent first)</span>
+                  </label>
+                </div>
+                
+                <!-- SKIP PARENT PERMISSIONS - Don't show them directly -->
+                <!-- Parents are managed automatically through child interactions -->
+              </div>
             </div>
           </div>
 
@@ -229,6 +245,7 @@
                 <td class="px-4 py-3 text-center">
                   <select (change)="assignRoleToUser(user, $event)" 
                           [disabled]="saving()"
+                          title="Assign a system role to this user"
                           class="px-2 py-1 bg-gray-900 border border-gray-600 rounded text-xs text-white focus:border-purple-500 focus:outline-none cursor-pointer">
                     <option value="">Assign role...</option>
                     <option *ngFor="let role of roles()" 

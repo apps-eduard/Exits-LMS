@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SettingsService } from '../../../core/services/settings.service';
 import { ProfileSettingsComponent } from './profile-settings.component';
+import { MenuManagementComponent } from './menu-management.component';
 
 @Component({
   selector: 'app-super-admin-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ProfileSettingsComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ProfileSettingsComponent, MenuManagementComponent],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss'
 })

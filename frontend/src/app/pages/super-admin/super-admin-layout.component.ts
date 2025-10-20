@@ -1,6 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterOutlet, Router } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { MenuService, NavSection } from '../../core/services/menu.service';
@@ -8,7 +8,7 @@ import { MenuService, NavSection } from '../../core/services/menu.service';
 @Component({
   selector: 'app-super-admin-layout',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterOutlet],
+  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './super-admin-layout.component.html',
   styleUrl: './super-admin-layout.component.scss'
 })
@@ -51,13 +51,14 @@ export class SuperAdminLayoutComponent implements OnInit {
    * Load menus from backend based on user permissions
    */
   loadMenus(): void {
-    console.log('[SUPER_ADMIN_LAYOUT] 📋 Loading platform menus...');
+    console.log('[SUPER_ADMIN_LAYOUT] 📋 Loading platform menus from database...');
     this.loadingMenu.set(true);
     this.menuError.set(null);
 
-    this.menuService.getPlatformMenu().subscribe({
+    // Use dynamic menu from database instead of static
+    this.menuService.getDynamicPlatformMenu().subscribe({
       next: (menu) => {
-        console.log('[SUPER_ADMIN_LAYOUT] ✅ Platform menu loaded:', {
+        console.log('[SUPER_ADMIN_LAYOUT] ✅ Dynamic platform menu loaded:', {
           sections: menu.length,
           items: menu.reduce((sum, s) => sum + s.items.length, 0),
           menu: menu
@@ -70,8 +71,8 @@ export class SuperAdminLayoutComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('[SUPER_ADMIN_LAYOUT] ❌ Failed to load platform menus:', error);
-        this.menuError.set('Failed to load menu. Using fallback.');
+        console.error('[SUPER_ADMIN_LAYOUT] ❌ Failed to load dynamic menus:', error);
+        this.menuError.set('Failed to load menu from database. Using fallback.');
         this.loadingMenu.set(false);
         
         // Use fallback menu

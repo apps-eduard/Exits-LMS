@@ -34,14 +34,14 @@
     <!-- Recent Tenants - Compact Table -->
     <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors">
       <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <h2 class="text-sm font-bold text-gray-900 dark:text-white">Recent Tenants</h2>
-        <a routerLink="/super-admin/tenants" class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium transition-colors">
+        <h2 class="text-sm font-bold text-gray-900 dark:text-white">System Users</h2>
+        <a routerLink="/super-admin/users" class="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium transition-colors">
           View All →
         </a>
       </div>
 
       <div *ngIf="recentTenants().length === 0" class="px-4 py-6 text-center">
-        <p class="text-xs text-gray-600 dark:text-gray-400">No tenants yet</p>
+        <p class="text-xs text-gray-600 dark:text-gray-400">No system users yet</p>
       </div>
 
       <div *ngIf="recentTenants().length > 0" class="overflow-x-auto">
@@ -49,9 +49,9 @@
           <thead class="bg-gray-100 dark:bg-gray-900/50">
             <tr class="border-b border-gray-200 dark:border-gray-700">
               <th class="text-left px-4 py-2 text-gray-600 dark:text-gray-400 font-semibold">Name</th>
+              <th class="text-left px-4 py-2 text-gray-600 dark:text-gray-400 font-semibold">Email</th>
+              <th class="text-left px-4 py-2 text-gray-600 dark:text-gray-400 font-semibold">Role</th>
               <th class="text-left px-4 py-2 text-gray-600 dark:text-gray-400 font-semibold">Status</th>
-              <th class="text-left px-4 py-2 text-gray-600 dark:text-gray-400 font-semibold">Modules</th>
-              <th class="text-left px-4 py-2 text-gray-600 dark:text-gray-400 font-semibold">Plan</th>
               <th class="text-left px-4 py-2 text-gray-600 dark:text-gray-400 font-semibold">Action</th>
             </tr>
           </thead>
@@ -65,17 +65,17 @@
                   <span class="text-gray-900 dark:text-white font-medium">{{ tenant.name }}</span>
                 </div>
               </td>
+              <td class="px-4 py-2 text-gray-600 dark:text-gray-300">
+                {{ tenant.email }}
+              </td>
+              <td class="px-4 py-2 text-gray-600 dark:text-gray-300">
+                <span class="px-2 py-1 rounded-full text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">System Admin</span>
+              </td>
               <td class="px-4 py-2">
                 <span [ngClass]="getStatusBadgeClass(tenant.status)" class="px-2 py-1 rounded text-xs font-medium">{{ tenant.status }}</span>
               </td>
-              <td class="px-4 py-2 text-gray-600 dark:text-gray-300">
-                {{ getActiveModulesCount(tenant) }}/{{ getTotalModulesCount(tenant) }}
-              </td>
-              <td class="px-4 py-2 text-gray-600 dark:text-gray-300">
-                {{ tenant.subscription_plan || 'N/A' }}
-              </td>
               <td class="px-4 py-2">
-                <a [routerLink]="['/super-admin/tenants', tenant.id]" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium transition-colors">
+                <a [routerLink]="['/super-admin/users', tenant.id]" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium transition-colors">
                   View
                 </a>
               </td>

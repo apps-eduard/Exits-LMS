@@ -1,12 +1,15 @@
 const express = require('express');
-const authMiddleware = require('../middleware/auth.middleware');
-const logger = require('../utils/logger');
-
 const router = express.Router();
+const menuController = require('../controllers/menu.controller');
+const authMiddleware = require('../middleware/auth.middleware');
+const { checkPermissionOr } = require('../middleware/rbac.middleware');
+
+// All routes require authentication
+router.use(authMiddleware);
 
 /**
- * Menu Configuration with permission linking
- * Maps routes and actions to permissions
+ * Static menu configuration (kept for backward compatibility)
+ * Used as fallback when dynamic menus are not available
  */
 const MENU_CONFIG = {
   platform: [
@@ -97,6 +100,14 @@ const MENU_CONFIG = {
           route: '/super-admin/settings/system-roles',
           description: 'Create & manage platform roles and permissions',
           permission: 'manage_roles'
+        },
+        {
+          id: 'menu-management',
+          label: 'Menu Management',
+          icon: '🎨',
+          route: '/super-admin/settings/menus',
+          description: 'Configure and organize application menus',
+          permission: 'view_menus'
         },
         {
           id: 'email-templates',
@@ -353,76 +364,65 @@ const MENU_CONFIG = {
   ]
 };
 
+// ============== DYNAMIC MENU CRUD OPERATIONS ==============
+
+// Get all menus (with optional scope filtering) - Read permission
+router.get('/', 
+  checkPermissionOr(['view_menus', 'manage_menus', 'manage_platform_settings']),
+  menuController.getAllMenus
+);
+
+// Get menu tree (hierarchical structure) - Read permission
+router.get('/tree', 
+  checkPermissionOr(['view_menus', 'manage_menus', 'manage_platform_settings']),
+  menuController.getMenuTree
+);
+
+// Get menu by ID - Read permission
+router.get('/:id', 
+  checkPermissionOr(['view_menus', 'manage_menus', 'manage_platform_settings']),
+  menuController.getMenuById
+);
+
+// Get menu children - Read permission
+router.get('/:parentId/children', 
+  checkPermissionOr(['view_menus', 'manage_menus', 'manage_platform_settings']),
+  menuController.getMenuChildren
+);
+
+// Update menu - Edit properties only (name, icon, parent, order, status)
+// Note: Users can ONLY edit existing menus, NOT create or delete
+router.put('/:id', 
+  checkPermissionOr(['edit_menus', 'manage_menus', 'manage_platform_settings']),
+  menuController.updateMenu
+);
+
+// Reorder menus - Edit permission (with backward compatibility)
+router.post('/reorder', 
+  checkPermissionOr(['edit_menus', 'manage_menus', 'manage_platform_settings']),
+  menuController.reorderMenus
+);
+
+// ============== STATIC MENU ENDPOINTS (Legacy/Fallback) ==============
+
 /**
- * GET /api/menus/platform - Get platform admin menu
- * Returns menu structure filtered by user permissions
+ * GET /api/menus/static/platform - Get static platform admin menu
+ * Returns default menu structure
  */
-router.get('/platform', authMiddleware, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const roleScope = req.user.roleScope;
-    
-    console.log('[MENU_API] 🍔 Platform menu requested by:', {
-      userId,
-      roleScope,
-      isSuperAdmin: roleScope === 'platform'
-    });
-    
-    // For platform admins, show all menu items (super admin)
-    const isSuperAdmin = roleScope === 'platform';
-    const menu = filterMenuByPermissions(MENU_CONFIG.platform, [], isSuperAdmin);
-    
-    console.log('[MENU_API] ✅ Platform menu returned:', {
-      sections: menu.length,
-      items: menu.reduce((sum, s) => sum + s.items.length, 0)
-    });
-    
-    res.json(menu);
-  } catch (error) {
-    console.error('[MENU_API] ❌ Error fetching platform menu:', error);
-    res.status(500).json({ error: 'Failed to fetch menu' });
-  }
+router.get('/static/platform', (req, res) => {
+  const isSuperAdmin = true;
+  const menu = filterMenuByPermissions(MENU_CONFIG.platform, [], isSuperAdmin);
+  
+  res.json(menu);
 });
 
 /**
- * GET /api/menus/tenant - Get tenant menu
- * Returns menu structure filtered by user permissions
+ * GET /api/menus/static/tenant - Get static tenant menu
+ * Returns default tenant menu structure
  */
-router.get('/tenant', authMiddleware, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const tenantId = req.user.tenantId;
-    
-    // For tenant users, show all menu items
-    // Permission filtering is handled by route guards
-    const isSuperAdmin = true; // Show all items for now
-    const menu = filterMenuByPermissions(MENU_CONFIG.tenant, [], isSuperAdmin);
-    
-    res.json(menu);
-  } catch (error) {
-    logger.error('Error fetching tenant menu:', error);
-    res.status(500).json({ error: 'Failed to fetch menu' });
-  }
-});
-
-/**
- * GET /api/menus/role/:roleId - Get menu for specific role
- */
-router.get('/role/:roleId', authMiddleware, async (req, res) => {
-  try {
-    const { roleId } = req.params;
-    const scope = req.query.scope || 'platform';
-    
-    // For now, return full menu (can be filtered by role later)
-    const menuConfig = scope === 'tenant' ? MENU_CONFIG.tenant : MENU_CONFIG.platform;
-    
-    const menu = filterMenuByPermissions(menuConfig, []);
-    
-    res.json(menu);
-  } catch (error) {
-    logger.error('Error fetching role menu:', error);
-    res.status(500).json({ error: 'Failed to fetch menu' });
-  }
+router.get('/static/tenant', (req, res) => {
+  const menu = filterMenuByPermissions(MENU_CONFIG.tenant, [], true);
+  res.json(menu);
 });
 
 /**

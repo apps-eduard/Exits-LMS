@@ -324,6 +324,25 @@ const createTables = async () => {
       );
     `);
 
+    // Menus table for dynamic menu system
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS menus (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        name VARCHAR(255) NOT NULL,
+        slug VARCHAR(255) NOT NULL,
+        parent_menu_id UUID REFERENCES menus(id) ON DELETE SET NULL,
+        icon VARCHAR(255),
+        route VARCHAR(255),
+        scope VARCHAR(50) NOT NULL DEFAULT 'platform' CHECK (scope IN ('platform', 'tenant')),
+        order_index INT DEFAULT 0,
+        is_active BOOLEAN DEFAULT true,
+        tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(slug, tenant_id, scope)
+      );
+    `);
+
     // Create indexes for performance
     await db.query(`
       CREATE INDEX IF NOT EXISTS idx_users_tenant_id ON users(tenant_id);
@@ -341,6 +360,11 @@ const createTables = async () => {
       CREATE INDEX IF NOT EXISTS idx_settings_key ON settings(key);
       CREATE INDEX IF NOT EXISTS idx_tenant_settings_tenant_id ON tenant_settings(tenant_id);
       CREATE INDEX IF NOT EXISTS idx_tenant_settings_key ON tenant_settings(setting_key);
+      CREATE INDEX IF NOT EXISTS idx_menus_parent_menu_id ON menus(parent_menu_id);
+      CREATE INDEX IF NOT EXISTS idx_menus_scope ON menus(scope);
+      CREATE INDEX IF NOT EXISTS idx_menus_is_active ON menus(is_active);
+      CREATE INDEX IF NOT EXISTS idx_menus_tenant_id ON menus(tenant_id);
+      CREATE INDEX IF NOT EXISTS idx_menus_slug ON menus(slug);
     `);
 
     console.log('✅ All tables created successfully');

@@ -352,29 +352,83 @@ exports.assignPermissionsToRole = async (req, res) => {
 
 /**
  * Get all permissions
+ * Query params:
+ *   - scope: 'platform' or 'tenant' (default: return all)
  */
 exports.getAllPermissions = async (req, res) => {
   try {
-    const result = await db.query(`
+    const { scope } = req.query;
+
+    // Define which resources belong to platform vs tenant scope
+    const platformResources = ['tenants', 'audit_logs', 'settings'];
+    const tenantResources = ['users', 'customers', 'loans', 'payments', 'loan_products', 'bnpl_merchants', 'bnpl_orders', 'reports'];
+
+    let query = `
       SELECT id, name, resource, action, description
       FROM permissions
-      ORDER BY resource ASC, action ASC, name ASC
-    `);
+    `;
 
-    const permissions = result.rows.map(row => ({
-      id: row.id,
-      name: row.name,
-      resource: row.resource,
-      action: row.action,
-      description: row.description || ''
-    }));
+    // Filter by scope if provided
+    if (scope === 'platform') {
+      const placeholders = platformResources.map((_, i) => `$${i + 1}`).join(',');
+      query += ` WHERE resource IN (${placeholders})`;
+      query += ` ORDER BY resource ASC, action ASC, name ASC`;
+      
+      const result = await db.query(query, platformResources);
+      const permissions = result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        resource: row.resource,
+        action: row.action,
+        description: row.description || ''
+      }));
 
-    logger.success('All permissions retrieved', { count: permissions.length });
+      logger.success('Platform permissions retrieved', { count: permissions.length });
 
-    res.json({
-      success: true,
-      permissions
-    });
+      return res.json({
+        success: true,
+        permissions
+      });
+    } else if (scope === 'tenant') {
+      const placeholders = tenantResources.map((_, i) => `$${i + 1}`).join(',');
+      query += ` WHERE resource IN (${placeholders})`;
+      query += ` ORDER BY resource ASC, action ASC, name ASC`;
+      
+      const result = await db.query(query, tenantResources);
+      const permissions = result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        resource: row.resource,
+        action: row.action,
+        description: row.description || ''
+      }));
+
+      logger.success('Tenant permissions retrieved', { count: permissions.length });
+
+      return res.json({
+        success: true,
+        permissions
+      });
+    } else {
+      // Return all permissions if no scope specified
+      query += ` ORDER BY resource ASC, action ASC, name ASC`;
+      
+      const result = await db.query(query);
+      const permissions = result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        resource: row.resource,
+        action: row.action,
+        description: row.description || ''
+      }));
+
+      logger.success('All permissions retrieved', { count: permissions.length });
+
+      return res.json({
+        success: true,
+        permissions
+      });
+    }
   } catch (error) {
     logger.error('Failed to get permissions', {
       message: error.message

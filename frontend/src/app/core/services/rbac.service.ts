@@ -121,6 +121,13 @@ export class RbacService {
   }
 
   /**
+   * Get permissions by scope (platform or tenant)
+   */
+  getPermissionsByScope(scope: 'platform' | 'tenant'): Observable<{ success: boolean; permissions: Permission[] }> {
+    return this.http.get<{ success: boolean; permissions: Permission[] }>(`${this.apiUrl}/permissions?scope=${scope}`);
+  }
+
+  /**
    * Get role by ID with permissions
    */
   getRoleById(roleId: string): Observable<{ success: boolean; role: Role }> {

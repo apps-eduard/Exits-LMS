@@ -12,6 +12,34 @@ interface RoleConfig {
   permissions: string[];
 }
 
+// Permission hierarchy: parent -> child mapping
+const PERMISSION_HIERARCHY: { [key: string]: string[] } = {
+  // Tenant Management (4 children)
+  'manage_tenants': [
+    'view_tenants',
+    'create_tenants',
+    'edit_tenants',
+    'delete_tenants'
+  ],
+  
+  // System Settings (3 children)
+  'manage_platform_settings': [
+    'view_platform_settings',
+    'edit_platform_settings',
+    'export_settings'
+  ],
+  
+    // Menu Management (2 children only - users can ONLY view and edit, NOT create/delete)
+    'manage_menus': [
+      'view_menus',
+      'edit_menus'
+    ],  // System Team (2 children)
+  'manage_users': [
+    'view_users',
+    'edit_users'
+  ]
+};
+
 @Component({
   selector: 'app-system-roles',
   standalone: true,
@@ -57,11 +85,12 @@ export class SystemRolesComponent implements OnInit {
 
   private loadAllPermissions(): void {
     this.loadingPermissions.set(true);
-    this.rbacService.getAllPermissions().subscribe({
+    // Load only platform-scope permissions for system roles
+    this.rbacService.getPermissionsByScope('platform').subscribe({
       next: (response) => {
         if (response.success && response.permissions) {
           this.allPermissions.set(response.permissions);
-          console.log('✅ All permissions loaded:', response.permissions);
+          console.log('✅ Platform permissions loaded:', response.permissions);
         }
         this.loadingPermissions.set(false);
       },
@@ -235,21 +264,120 @@ export class SystemRolesComponent implements OnInit {
   togglePermission(permissionName: string): void {
     const role = this.selectedRole();
     if (role) {
-      const permissions = role.permissions;
+      const permissions = [...role.permissions];
       const index = permissions.indexOf(permissionName);
       
       if (index > -1) {
+        // REMOVING permission: Also remove all children
         permissions.splice(index, 1);
+        
+        // Remove all child permissions of this permission
+        const childPermissions = PERMISSION_HIERARCHY[permissionName] || [];
+        childPermissions.forEach(child => {
+          const childIndex = permissions.indexOf(child);
+          if (childIndex > -1) {
+            permissions.splice(childIndex, 1);
+          }
+        });
       } else {
+        // ADDING permission: Auto-add parent if it has one
         permissions.push(permissionName);
+        
+        // Check if this permission is a child of any parent
+        for (const [parent, children] of Object.entries(PERMISSION_HIERARCHY)) {
+          if (children.includes(permissionName)) {
+            // This is a child permission, auto-add parent if not already present
+            if (!permissions.includes(parent)) {
+              permissions.push(parent);
+            }
+          }
+        }
       }
       
-      this.selectedRole.set({ ...role, permissions: [...permissions] });
+      this.selectedRole.set({ ...role, permissions });
     }
   }
 
   hasPermission(permissionName: string): boolean {
     return this.selectedRole()?.permissions.includes(permissionName) ?? false;
+  }
+
+  /**
+   * Check if a permission is a parent (has children)
+   */
+  isParentPermission(permissionName: string): boolean {
+    return permissionName in PERMISSION_HIERARCHY;
+  }
+
+  /**
+   * Check if a permission is a child (has a parent)
+   */
+  isChildPermission(permissionName: string): boolean {
+    for (const [parent, children] of Object.entries(PERMISSION_HIERARCHY)) {
+      if (children.includes(permissionName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Get parent of a child permission
+   */
+  getParentOfChild(childName: string): string | null {
+    for (const [parent, children] of Object.entries(PERMISSION_HIERARCHY)) {
+      if (children.includes(childName)) {
+        return parent;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Check if parent of this child is checked
+   */
+  isParentOfChildChecked(childName: string): boolean {
+    const parent = this.getParentOfChild(childName);
+    if (!parent) return true; // If no parent, it's standalone
+    return this.hasPermission(parent);
+  }
+
+  /**
+   * Get child permissions for a given parent
+   */
+  getChildPermissions(permissionName: string): string[] {
+    return PERMISSION_HIERARCHY[permissionName] || [];
+  }
+
+  /**
+   * Check if all children of a parent are checked
+   */
+  areAllChildrenChecked(parentName: string): boolean {
+    const children = this.getChildPermissions(parentName);
+    if (children.length === 0) return true;
+    return children.every(child => this.hasPermission(child));
+  }
+
+  /**
+   * Check if any child of a parent is checked
+   */
+  isAnyChildChecked(parentName: string): boolean {
+    const children = this.getChildPermissions(parentName);
+    return children.some(child => this.hasPermission(child));
+  }
+
+  /**
+   * Check if parent can be unchecked (has no checked children)
+   */
+  canUncheckParent(parentName: string): boolean {
+    return !this.isAnyChildChecked(parentName);
+  }
+
+  /**
+   * Get count of visible permissions (only children, not parents)
+   */
+  getVisiblePermissionCount(permissions: any[]): number {
+    return permissions.filter((p: any) => this.isChildPermission(p.name) || !this.isParentPermission(p.name)).length;
   }
 
   // Utility Methods
@@ -279,13 +407,7 @@ export class SystemRolesComponent implements OnInit {
     return {
       'Tenant Management': permissions.filter((p: any) => p.resource === 'tenants'),
       'User Management': permissions.filter((p: any) => p.resource === 'users'),
-      'Customers': permissions.filter((p: any) => p.resource === 'customers'),
-      'Loans': permissions.filter((p: any) => p.resource === 'loans'),
-      'Payments': permissions.filter((p: any) => p.resource === 'payments'),
-      'Loan Products': permissions.filter((p: any) => p.resource === 'loan_products'),
-      'BNPL': permissions.filter((p: any) => p.resource === 'bnpl_merchants' || p.resource === 'bnpl_orders'),
       'Audit & Compliance': permissions.filter((p: any) => p.resource === 'audit_logs'),
-      'Reports': permissions.filter((p: any) => p.resource === 'reports'),
       'Platform Settings': permissions.filter((p: any) => p.resource === 'settings'),
     };
   }

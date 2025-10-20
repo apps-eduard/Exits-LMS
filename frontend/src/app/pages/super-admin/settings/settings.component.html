@@ -52,6 +52,13 @@
       [ngClass]="activeTab() === 'features' ? 'text-purple-400 border-purple-400' : 'text-gray-400 border-transparent hover:text-gray-300'">
       🎯 Features
     </button>
+    <button
+      (click)="setActiveTab('menus')"
+      [class.active]="activeTab() === 'menus'"
+      class="px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap"
+      [ngClass]="activeTab() === 'menus' ? 'text-purple-400 border-purple-400' : 'text-gray-400 border-transparent hover:text-gray-300'">
+      📋 Menus
+    </button>
   </div>
 
   <!-- Profile Tab -->
@@ -332,8 +339,13 @@
     </div>
   </form>
 
+  <!-- Menu Management Tab -->
+  <div *ngIf="activeTab() === 'menus'">
+    <app-menu-management></app-menu-management>
+  </div>
+
   <!-- Save Button -->
-  <div class="flex items-center justify-between mt-6 bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+  <div *ngIf="activeTab() !== 'menus' && activeTab() !== 'profile'" class="flex items-center justify-between mt-6 bg-gray-800/50 p-4 rounded-lg border border-gray-700">
     <div>
       <p class="text-white font-medium text-sm">Save Changes</p>
       <p class="text-xs text-gray-400">Click save to apply these settings platform-wide</p>
