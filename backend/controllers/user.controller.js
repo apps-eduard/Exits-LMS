@@ -164,6 +164,17 @@ const createUser = async (req, res) => {
 
     await client.query('COMMIT');
 
+    // Audit log: User created
+    if (req.auditLog) {
+      await req.auditLog('CREATE', 'USER', user.id, {
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        role: roleName,
+        tenantId: tenantId || 'platform'
+      });
+    }
+
     res.status(201).json({
       success: true,
       user: {
@@ -799,53 +810,64 @@ const deleteTenantUser = async (req, res) => {
   }
 };
 
-// Get user activity logs (platform-wide)
+// Get user activity logs (platform-wide) - Real audit logs
 const getActivityLogs = async (req, res) => {
   try {
-    const { days = '7', action, entity, user } = req.query;
-    const daysNum = parseInt(days) || 7;
+    const { days = '30', action, resource, user } = req.query;
+    const daysNum = parseInt(days) || 30;
 
     logger.trace('getActivityLogs', 'ENTER', { 
       days: daysNum, 
       action, 
-      entity, 
+      resource, 
       user,
       requestedBy: req.user?.id 
     });
 
     let query = `
       SELECT 
-        id, user_id, user_email, action, description,
-        entity_type, entity_id, details, ip_address, user_agent,
-        created_at
-      FROM activity_logs
-      WHERE created_at >= NOW() - INTERVAL '${daysNum} days'
+        al.id,
+        al.tenant_id,
+        al.user_id,
+        u.email as user_email,
+        u.first_name,
+        u.last_name,
+        al.action,
+        al.resource,
+        al.resource_id,
+        al.details,
+        al.ip_address,
+        al.user_agent,
+        al.created_at
+      FROM audit_logs al
+      LEFT JOIN users u ON al.user_id = u.id
+      WHERE al.created_at >= NOW() - INTERVAL '${daysNum} days'
     `;
 
     const params = [];
 
     if (user) {
       params.push(`%${user}%`);
-      query += ` AND user_email ILIKE $${params.length}`;
+      query += ` AND u.email ILIKE $${params.length}`;
     }
 
     if (action && action !== 'all') {
-      params.push(action);
-      query += ` AND action = $${params.length}`;
+      params.push(action.toUpperCase());
+      query += ` AND al.action = $${params.length}`;
     }
 
-    if (entity && entity !== 'all') {
-      params.push(entity);
-      query += ` AND entity_type = $${params.length}`;
+    if (resource && resource !== 'all') {
+      params.push(resource.toUpperCase());
+      query += ` AND al.resource = $${params.length}`;
     }
 
-    query += ` ORDER BY created_at DESC LIMIT 1000`;
+    query += ` ORDER BY al.created_at DESC LIMIT 1000`;
 
     const result = await db.query(query, params);
 
-    logger.success('Fetched activity logs', {
+    logger.success('Fetched audit logs', {
       count: result.rows.length,
-      filters: { days: daysNum, action, entity, user },
+      filters: { days: daysNum, action, resource, user },
     });
 
     res.json({
@@ -854,8 +876,8 @@ const getActivityLogs = async (req, res) => {
       count: result.rows.length,
     });
   } catch (error) {
-    logger.error('getActivityLogs', 'Failed to fetch activity logs', { error: error.message });
-    res.status(500).json({ error: 'Failed to fetch activity logs' });
+    logger.error('getActivityLogs', 'Failed to fetch audit logs', { error: error.message });
+    res.status(500).json({ error: 'Failed to fetch audit logs' });
   }
 };
 

@@ -8,6 +8,7 @@ require('dotenv').config();
 const db = require('./config/database');
 const logger = require('./utils/logger');
 const httpLogger = require('./middleware/httpLogger');
+const { auditLoggerMiddleware } = require('./middleware/audit-logger');
 
 // Import routes
 const authRoutes = require('./routes/auth.routes');
@@ -44,6 +45,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // HTTP Logging
 app.use(httpLogger);
+
+// Audit Logger Middleware - logs all API actions
+app.use(auditLoggerMiddleware);
 
 // Logging
 if (process.env.NODE_ENV === 'development') {

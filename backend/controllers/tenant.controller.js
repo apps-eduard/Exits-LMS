@@ -192,6 +192,16 @@ const createTenant = async (req, res) => {
     await client.query('COMMIT');
     console.log('✅ [TRANSACTION_COMMITTED] All changes committed successfully');
     
+    // Audit log: Tenant created
+    if (req.auditLog) {
+      await req.auditLog('CREATE', 'TENANT', tenant.id, {
+        name: tenant.name,
+        subdomain: tenant.subdomain,
+        status: tenant.status,
+        subscriptionPlan: tenant.subscription_plan
+      });
+    }
+    
     res.status(201).json({
       success: true,
       tenant,
@@ -355,6 +365,16 @@ const updateTenant = async (req, res) => {
       name: completeTenant.name,
       address: completeTenant.street_address
     });
+    
+    // Audit log: Tenant updated
+    if (req.auditLog) {
+      await req.auditLog('UPDATE', 'TENANT', id, {
+        name: completeTenant.name,
+        status: completeTenant.status,
+        subscriptionPlan: completeTenant.subscription_plan,
+        addressUpdated: !!street_address
+      });
+    }
     
     res.json({
       success: true,
