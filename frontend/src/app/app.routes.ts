@@ -75,6 +75,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/super-admin/settings/system-roles.component').then(m => m.SystemRolesComponent)
       },
       {
+        path: 'settings/email-templates',
+        loadComponent: () => import('./pages/super-admin/settings/email-templates.component').then(m => m.EmailTemplatesComponent)
+      },
+      {
         path: 'settings',
         loadComponent: () => import('./pages/super-admin/settings/settings.component').then(m => m.SettingsComponent)
       },

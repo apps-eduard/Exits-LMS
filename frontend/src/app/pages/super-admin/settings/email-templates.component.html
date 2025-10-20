@@ -1,0 +1,235 @@
+<div class="p-4 lg:p-6">
+  <!-- Page Header -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">📧 Email Templates</h1>
+    <p class="text-sm text-gray-600 dark:text-gray-400">Customize system email notifications and templates</p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 flex items-center justify-center">
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading()" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Templates List -->
+    <div class="lg:col-span-1">
+      <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+        <!-- Search -->
+        <div class="mb-4">
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            placeholder="Search templates..."
+            class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+          />
+        </div>
+
+        <!-- Templates -->
+        <div class="space-y-2 max-h-[600px] overflow-y-auto">
+          <ng-container *ngFor="let template of filteredTemplates">
+            <button
+              (click)="selectTemplate(template)"
+              [class.ring-2]="selectedTemplate()?.id === template.id"
+              [class.ring-purple-500]="selectedTemplate()?.id === template.id"
+              class="w-full p-3 bg-gray-900 hover:bg-gray-800 border border-gray-700 rounded text-left transition-all text-xs"
+            >
+              <div class="flex items-start justify-between mb-1">
+                <span class="font-semibold text-white truncate">{{ template.name }}</span>
+                <span
+                  [ngClass]="getCategoryColor(template.category)"
+                  class="text-[10px] font-bold px-2 py-0.5 rounded whitespace-nowrap ml-1 flex-shrink-0"
+                >
+                  {{ template.category }}
+                </span>
+              </div>
+              <p class="text-gray-400 truncate">{{ template.subject }}</p>
+              <div class="flex items-center gap-2 mt-2">
+                <span
+                  [class.bg-green-500]="template.isEnabled"
+                  [class.bg-gray-500]="!template.isEnabled"
+                  class="w-2 h-2 rounded-full"
+                ></span>
+                <span class="text-[10px] text-gray-500">{{ template.isEnabled ? 'Enabled' : 'Disabled' }}</span>
+              </div>
+            </button>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
+    <!-- Template Details -->
+    <div class="lg:col-span-2">
+      <div *ngIf="!selectedTemplate()" class="bg-gray-800/50 border border-gray-700 rounded-lg p-8 flex items-center justify-center min-h-[400px]">
+        <div class="text-center">
+          <p class="text-gray-400 text-sm">Select a template to edit</p>
+        </div>
+      </div>
+
+      <div *ngIf="selectedTemplate()" class="space-y-4">
+        <!-- Success Message -->
+        <div
+          *ngIf="savedMessage()"
+          class="bg-green-900/30 border border-green-700 rounded-lg p-3 text-green-400 text-xs font-medium"
+        >
+          {{ savedMessage() }}
+        </div>
+
+        <!-- Template Header -->
+        <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <h2 class="text-lg font-bold text-white">{{ selectedTemplate()!.name }}</h2>
+              <p class="text-xs text-gray-400">{{ selectedTemplate()!.category }} Template</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <label class="flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="selectedTemplate()!.isEnabled"
+                  (change)="toggleTemplate(selectedTemplate()!)"
+                  class="rounded"
+                />
+                <span class="text-gray-300">Enabled</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Template Info -->
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <p class="text-gray-400">Last Modified</p>
+              <p class="text-white">{{ selectedTemplate()!.lastModified | date: 'short' || 'Never' }}</p>
+            </div>
+            <div>
+              <p class="text-gray-400">Status</p>
+              <p [ngClass]="selectedTemplate()!.isEnabled ? 'text-green-400' : 'text-orange-400'" class="font-semibold">
+                {{ selectedTemplate()!.isEnabled ? '✓ Active' : '⏸ Inactive' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex gap-2 mt-3 pt-3 border-t border-gray-700">
+            <button
+              (click)="previewTemplate()"
+              class="flex-1 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium rounded transition"
+            >
+              👁️ Preview
+            </button>
+            <button
+              (click)="editTemplate()"
+              [disabled]="editMode()"
+              class="flex-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition disabled:opacity-50"
+            >
+              ✏️ Edit
+            </button>
+          </div>
+        </div>
+
+        <!-- Template Form (Edit Mode) -->
+        <form *ngIf="editMode()" [formGroup]="templateForm" class="space-y-3">
+          <!-- Name -->
+          <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+            <label class="block text-xs font-semibold text-gray-300 mb-2">Template Name</label>
+            <input
+              type="text"
+              formControlName="name"
+              class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+              [class.border-red-500]="isFieldInvalid('name')"
+            />
+            <p *ngIf="isFieldInvalid('name')" class="text-red-400 text-xs mt-1">{{ getFieldError('name') }}</p>
+          </div>
+
+          <!-- Category -->
+          <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+            <label class="block text-xs font-semibold text-gray-300 mb-2">Category</label>
+            <select
+              formControlName="category"
+              class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white focus:border-purple-500 focus:outline-none"
+            >
+              <option *ngFor="let cat of categories" [value]="cat">{{ cat | titlecase }}</option>
+            </select>
+          </div>
+
+          <!-- Subject -->
+          <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+            <label class="block text-xs font-semibold text-gray-300 mb-2">Subject Line</label>
+            <input
+              type="text"
+              formControlName="subject"
+              placeholder="e.g., Welcome to {{organizationName}}"
+              class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+              [class.border-red-500]="isFieldInvalid('subject')"
+            />
+            <p *ngIf="isFieldInvalid('subject')" class="text-red-400 text-xs mt-1">{{ getFieldError('subject') }}</p>
+            <p class="text-gray-500 text-[10px] mt-1">💡 Use {{variable}} format for dynamic content</p>
+          </div>
+
+          <!-- Body -->
+          <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+            <label class="block text-xs font-semibold text-gray-300 mb-2">Email Body</label>
+            <textarea
+              formControlName="body"
+              rows="12"
+              placeholder="Enter email template content"
+              class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none font-mono resize-none"
+              [class.border-red-500]="isFieldInvalid('body')"
+            ></textarea>
+            <p *ngIf="isFieldInvalid('body')" class="text-red-400 text-xs mt-1">{{ getFieldError('body') }}</p>
+            <p class="text-gray-500 text-[10px] mt-1">💡 Available variables: {{firstName}}, {{lastName}}, {{email}}, {{organizationName}}</p>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex gap-2 pt-2">
+            <button
+              type="button"
+              (click)="cancelEdit()"
+              class="flex-1 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium rounded transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              (click)="saveTemplate()"
+              [disabled]="!templateForm.valid || saving()"
+              class="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition disabled:opacity-50"
+            >
+              {{ saving() ? '⏳ Saving...' : '💾 Save' }}
+            </button>
+          </div>
+        </form>
+
+        <!-- Template Preview (View Mode) -->
+        <div *ngIf="!editMode()" class="space-y-3">
+          <!-- Subject Preview -->
+          <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+            <p class="text-xs text-gray-400 mb-2">Subject</p>
+            <p class="text-white font-semibold text-sm">{{ selectedTemplate()!.subject }}</p>
+          </div>
+
+          <!-- Body Preview -->
+          <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+            <p class="text-xs text-gray-400 mb-2">Template Body</p>
+            <div class="bg-gray-900 border border-gray-700 rounded p-3 text-xs text-gray-300 whitespace-pre-wrap font-mono max-h-[300px] overflow-y-auto">
+              {{ selectedTemplate()!.body }}
+            </div>
+          </div>
+
+          <!-- Variables -->
+          <div *ngIf="selectedTemplate()!.variables && selectedTemplate()!.variables.length > 0" class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+            <p class="text-xs text-gray-400 mb-2">Available Variables</p>
+            <div class="flex flex-wrap gap-2">
+              <span
+                *ngFor="let variable of selectedTemplate()!.variables"
+                class="bg-purple-900/30 border border-purple-700 text-purple-400 text-xs px-2 py-1 rounded font-mono"
+              >
+                {{{{ variable }}}}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
