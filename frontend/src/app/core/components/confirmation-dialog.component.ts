@@ -11,17 +11,17 @@ import { ThemeService } from '../services/theme.service';
   template: `
     <div *ngIf="isOpen$ | async as _" 
          [@fadeInOut]
-         class="fixed inset-0 z-50 flex items-center justify-center">
-      <!-- Backdrop -->
-      <div class="absolute inset-0 bg-black/50" (click)="onCancel()"></div>
+         class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <!-- Backdrop with blur -->
+      <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" (click)="onCancel()"></div>
 
       <!-- Dialog Container -->
-      <div [@scaleInOut] [ngClass]="getDialogClasses()" class="relative rounded-lg shadow-2xl max-w-md w-full mx-4 border">
-        <!-- Header -->
-        <div class="px-6 pt-6 pb-3">
+      <div [@scaleInOut] [ngClass]="getDialogClasses()" class="relative rounded-xl shadow-2xl max-w-md w-full border overflow-hidden">
+        <!-- Header with gradient background -->
+        <div [ngClass]="getHeaderClasses()" class="px-6 pt-6 pb-4">
           <div class="flex items-start gap-4">
-            <!-- Icon -->
-            <div [ngClass]="getIconClasses()">
+            <!-- Icon with animation -->
+            <div [ngClass]="getIconClasses()" [@iconPulse]>
               <svg *ngIf="config?.icon === 'warning'" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
               </svg>
@@ -41,27 +41,45 @@ import { ThemeService } from '../services/theme.service';
 
             <!-- Title -->
             <div class="flex-1">
-              <h3 [ngClass]="getTitleClasses()">{{ config?.title }}</h3>
+              <h3 [ngClass]="getTitleClasses()" class="text-xl font-bold">{{ config?.title }}</h3>
             </div>
+            
+            <!-- Close button -->
+            <button (click)="onCancel()" [ngClass]="getCloseButtonClasses()" class="transition-all hover:scale-110">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
 
         <!-- Message -->
-        <div class="px-6 pb-4">
-          <p [ngClass]="getMessageClasses()">{{ config?.message }}</p>
+        <div class="px-6 pb-6">
+          <p [ngClass]="getMessageClasses()" class="text-base leading-relaxed">{{ config?.message }}</p>
         </div>
 
         <!-- Actions -->
-        <div [ngClass]="getActionsClasses()" class="px-6 py-4 border-t rounded-b-lg flex gap-3 justify-end">
+        <div [ngClass]="getActionsClasses()" class="px-6 py-5 border-t flex gap-3 justify-end">
           <button 
             (click)="onCancel()"
-            [ngClass]="getCancelButtonClasses()">
-            {{ config?.cancelText || 'Cancel' }}
+            [ngClass]="getCancelButtonClasses()"
+            class="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-all hover:scale-105 active:scale-95">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            <span>{{ config?.cancelText || 'Cancel' }}</span>
           </button>
           <button 
             (click)="onConfirm()"
-            [ngClass]="getConfirmButtonClasses()">
-            {{ config?.confirmText || 'Confirm' }}
+            [ngClass]="getConfirmButtonClasses()"
+            class="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition-all hover:scale-105 active:scale-95 text-white shadow-lg hover:shadow-xl">
+            <svg *ngIf="config?.confirmClass !== 'danger'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <svg *ngIf="config?.confirmClass === 'danger'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <span>{{ config?.confirmText || 'Confirm' }}</span>
           </button>
         </div>
       </div>
@@ -71,23 +89,33 @@ import { ThemeService } from '../services/theme.service';
     trigger('fadeInOut', [
       transition(':enter', [
         style({ opacity: 0 }),
-        animate('200ms ease-in', style({ opacity: 1 }))
+        animate('300ms ease-out', style({ opacity: 1 }))
       ]),
       transition(':leave', [
-        animate('200ms ease-out', style({ opacity: 0 }))
+        animate('300ms ease-in', style({ opacity: 0 }))
       ])
     ]),
     trigger('scaleInOut', [
       transition(':enter', [
-        style({ transform: 'scale(0.9)', opacity: 0 }),
-        animate('200ms ease-out', style({ transform: 'scale(1)', opacity: 1 }))
+        style({ transform: 'scale(0.85)', opacity: 0 }),
+        animate('300ms cubic-bezier(0.34, 1.56, 0.64, 1)', style({ transform: 'scale(1)', opacity: 1 }))
       ]),
       transition(':leave', [
-        animate('200ms ease-in', style({ transform: 'scale(0.9)', opacity: 0 }))
+        animate('300ms ease-in', style({ transform: 'scale(0.85)', opacity: 0 }))
+      ])
+    ]),
+    trigger('iconPulse', [
+      state('*', style({})),
+      transition('* <=> *', [
+        animate('1s ease-in-out', style({ transform: 'scale(1)' }))
       ])
     ])
   ],
-  styles: []
+  styles: [`
+    :host {
+      --confirm-duration: 300ms;
+    }
+  `]
 })
 export class ConfirmationDialogComponent implements OnInit {
   isOpen$;
@@ -153,6 +181,20 @@ export class ConfirmationDialogComponent implements OnInit {
     return `${baseClasses} text-gray-700 bg-gray-200 hover:bg-gray-300`;
   }
 
+  getHeaderClasses(): string {
+    if (this.isDarkMode) {
+      return 'bg-gradient-to-r from-gray-700 to-gray-600';
+    }
+    return 'bg-gradient-to-r from-gray-50 to-gray-100';
+  }
+
+  getCloseButtonClasses(): string {
+    if (this.isDarkMode) {
+      return 'text-gray-400 hover:text-gray-200 bg-gray-700/50 hover:bg-gray-600 rounded-lg p-1';
+    }
+    return 'text-gray-500 hover:text-gray-700 bg-gray-200/50 hover:bg-gray-300 rounded-lg p-1';
+  }
+
   getIconClasses(): string {
     const baseClasses = 'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0';
     
@@ -171,7 +213,7 @@ export class ConfirmationDialogComponent implements OnInit {
   }
 
   getConfirmButtonClasses(): string {
-    const baseClasses = 'text-white px-4 py-2 text-sm font-medium rounded-md transition-colors';
+    const baseClasses = 'text-white px-4 py-2 text-sm font-medium rounded-lg transition-colors shadow-lg hover:shadow-xl';
     
     switch (this.config?.confirmClass) {
       case 'danger':
