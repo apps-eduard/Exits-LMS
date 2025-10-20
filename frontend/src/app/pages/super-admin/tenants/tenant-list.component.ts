@@ -52,18 +52,39 @@ export class TenantListComponent implements OnInit {
 
   loadTenants(): void {
     this.loading.set(true);
+    console.log('[TENANT_LIST] Loading tenants with:', {
+      search: this.searchTerm(),
+      status: this.statusFilter()
+    });
+    
     this.tenantService.getAllTenants(this.searchTerm(), this.statusFilter() === 'all' ? undefined : this.statusFilter()).subscribe({
       next: (response) => {
+        console.log('[TENANT_LIST] ✅ Tenants loaded:', {
+          success: response.success,
+          count: response.tenants?.length || 0,
+          tenants: response.tenants
+        });
+        
         if (response.success) {
           this.tenants.set(response.tenants);
           this.filteredTenants.set(response.tenants);
-          this.activeTenants.set(response.tenants.filter((t: TenantRow) => t.status === 'active'));
-          this.suspendedTenants.set(response.tenants.filter((t: TenantRow) => t.status === 'suspended'));
+          const activeTenants = response.tenants.filter((t: TenantRow) => t.status === 'active');
+          const suspendedTenants = response.tenants.filter((t: TenantRow) => t.status === 'suspended');
+          
+          console.log('[TENANT_LIST] 📊 Filtered tenants:', {
+            active: activeTenants.length,
+            suspended: suspendedTenants.length,
+            activeSample: activeTenants.slice(0, 1),
+            suspendedSample: suspendedTenants.slice(0, 1)
+          });
+          
+          this.activeTenants.set(activeTenants);
+          this.suspendedTenants.set(suspendedTenants);
         }
         this.loading.set(false);
       },
       error: (error) => {
-        console.error('Error loading tenants:', error);
+        console.error('[TENANT_LIST] ❌ Error loading tenants:', error);
         this.loading.set(false);
       }
     });
@@ -72,6 +93,7 @@ export class TenantListComponent implements OnInit {
   onSearch(event?: Event): void {
     if (event) {
       const value = (event.target as HTMLInputElement).value;
+      console.log('[TENANT_LIST] 🔍 Search triggered:', value);
       this.searchTerm.set(value);
     }
     this.searchSubject.next();
@@ -79,6 +101,7 @@ export class TenantListComponent implements OnInit {
 
   onStatusFilterChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
+    console.log('[TENANT_LIST] 📋 Status filter changed:', value);
     this.statusFilter.set(value);
     this.searchSubject.next();
   }
@@ -116,5 +139,15 @@ export class TenantListComponent implements OnInit {
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  }
+
+  onTenantClick(tenant: TenantRow): void {
+    console.log('[TENANT_LIST] 👁️ Viewing tenant:', {
+      id: tenant.id,
+      name: tenant.name,
+      status: tenant.status,
+      hasId: !!tenant.id,
+      allProps: tenant
+    });
   }
 }

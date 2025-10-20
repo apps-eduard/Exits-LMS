@@ -25,28 +25,41 @@ export class TenantDetailComponent implements OnInit {
 
   ngOnInit(): void {
     const tenantId = this.route.snapshot.paramMap.get('id');
+    console.log('[TENANT_DETAIL] 🔍 Component initialized with tenantId:', tenantId);
+    
     if (tenantId) {
       this.loadTenant(tenantId);
       this.loadUsers(tenantId);
+    } else {
+      console.error('[TENANT_DETAIL] ❌ No tenantId found in route params');
+      this.error.set('No tenant ID provided');
     }
   }
 
   loadTenant(tenantId: string): void {
     this.loading.set(true);
     this.error.set(null);
+    console.log('[TENANT_DETAIL] 📥 Fetching tenant:', tenantId);
+    
     this.tenantService.getTenantById(tenantId).subscribe({
       next: (response) => {
+        console.log('[TENANT_DETAIL] ✅ Tenant loaded:', {
+          success: response.success,
+          tenant: response.tenant
+        });
+        
         if (response.success && response.tenant) {
           this.tenant.set(response.tenant);
         } else if (response.tenant) {
           this.tenant.set(response.tenant);
         } else {
           this.error.set('Failed to load tenant data');
+          console.error('[TENANT_DETAIL] ❌ No tenant data in response:', response);
         }
         this.loading.set(false);
       },
       error: (error) => {
-        console.error('Error loading tenant:', error);
+        console.error('[TENANT_DETAIL] ❌ Error loading tenant:', error);
         this.error.set('Error loading tenant: ' + (error?.error?.error || 'Unknown error'));
         this.loading.set(false);
       }
@@ -55,8 +68,15 @@ export class TenantDetailComponent implements OnInit {
 
   loadUsers(tenantId: string): void {
     this.loadingUsers.set(true);
+    console.log('[TENANT_DETAIL] 👥 Fetching users for tenant:', tenantId);
+    
     this.tenantService.getTenantUsers(tenantId).subscribe({
       next: (response) => {
+        console.log('[TENANT_DETAIL] ✅ Users loaded:', {
+          count: response.users?.length || 0,
+          users: response.users
+        });
+        
         if (response.success && Array.isArray(response.users)) {
           this.users.set(response.users);
         } else if (Array.isArray(response.users)) {
@@ -65,7 +85,7 @@ export class TenantDetailComponent implements OnInit {
         this.loadingUsers.set(false);
       },
       error: (error) => {
-        console.error('Error loading users:', error);
+        console.error('[TENANT_DETAIL] ❌ Error loading users:', error);
         this.loadingUsers.set(false);
       }
     });

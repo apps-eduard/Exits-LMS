@@ -1,3 +1,4 @@
+
 <div class="p-4 lg:p-6">
   <!-- Compact Header -->
   <div class="flex justify-between items-center mb-4">
@@ -107,7 +108,7 @@
               <!-- Actions -->
               <td class="px-3 py-2">
                 <div class="flex gap-2">
-                  <a [routerLink]="['/super-admin/tenants', tenant.id]" class="text-purple-400 hover:text-purple-300 font-medium text-xs">
+                  <a [routerLink]="['/super-admin/tenants', tenant.id]" (click)="onTenantClick(tenant)" class="text-purple-400 hover:text-purple-300 font-medium text-xs">
                     View
                   </a>
                   <a [routerLink]="['/super-admin/tenants', tenant.id, 'edit']" class="text-blue-400 hover:text-blue-300 font-medium text-xs">
@@ -201,7 +202,7 @@
               <!-- Actions -->
               <td class="px-3 py-2">
                 <div class="flex gap-2">
-                  <a [routerLink]="['/super-admin/tenants', tenant.id]" class="text-purple-400 hover:text-purple-300 font-medium text-xs">
+                  <a [routerLink]="['/super-admin/tenants', tenant.id]" (click)="onTenantClick(tenant)" class="text-purple-400 hover:text-purple-300 font-medium text-xs">
                     View
                   </a>
                   <a [routerLink]="['/super-admin/tenants', tenant.id, 'edit']" class="text-blue-400 hover:text-blue-300 font-medium text-xs">
