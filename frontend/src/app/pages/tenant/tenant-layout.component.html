@@ -126,8 +126,7 @@
                 <!-- Nested Items -->
                 <div *ngIf="isItemExpanded(item.label)" class="space-y-0 pl-5 mt-0.5">
                   <ng-container *ngFor="let child of item.children">
-                    <a *ngIf="!child.permission || hasModule(child.permission)" 
-                       [routerLink]="child.route" routerLinkActive="active"
+                    <a [routerLink]="child.route" routerLinkActive="active"
                        class="flex items-center gap-1.5 px-2 py-1 rounded text-xs text-gray-600 dark:text-gray-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
                       <span class="text-sm">{{ child.icon }}</span>
                       <span class="truncate">{{ child.label }}</span>
@@ -141,8 +140,7 @@
 
               <!-- Regular Item (No Children) -->
               <ng-container *ngIf="!item.children || item.children.length === 0">
-                <a *ngIf="!item.permission || hasModule(item.permission)"
-                   [routerLink]="item.route" routerLinkActive="active"
+                <a [routerLink]="item.route" routerLinkActive="active"
                    class="flex items-center justify-between px-2 py-1.5 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors text-sm">
                   <div class="flex items-center gap-2 flex-1 min-w-0">
                     <span class="text-base flex-shrink-0">{{ item.icon }}</span>

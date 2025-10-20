@@ -156,11 +156,37 @@ const MENU_CONFIG = {
       items: [
         {
           id: 'customers',
-          label: 'Customers',
+          label: 'All Customers',
           icon: '👥',
           route: '/tenant/customers',
           description: 'Manage customer accounts',
-          permission: 'view_customers'
+          permission: 'view_customers',
+          children: [
+            {
+              id: 'add-customer',
+              label: 'Add Customer',
+              icon: '➕',
+              route: '/tenant/customers/create',
+              description: 'Create new customer',
+              permission: 'create_customers'
+            },
+            {
+              id: 'active-customers',
+              label: 'Active Customers',
+              icon: '✅',
+              route: '/tenant/customers?status=active',
+              description: 'View active customers',
+              permission: 'view_customers'
+            },
+            {
+              id: 'pending-customers',
+              label: 'Pending Customers',
+              icon: '⏳',
+              route: '/tenant/customers?status=pending',
+              description: 'View pending customers',
+              permission: 'view_customers'
+            }
+          ]
         },
         {
           id: 'kyc',
@@ -180,17 +206,43 @@ const MENU_CONFIG = {
       items: [
         {
           id: 'loans',
-          label: 'Loans',
+          label: 'All Loans',
           icon: '💰',
-          route: '/tenant/loans',
+          route: '/tenant/customers-loans',
           description: 'View and manage loans',
-          permission: 'view_loans'
+          permission: 'view_loans',
+          children: [
+            {
+              id: 'active-loans',
+              label: 'Active Loans',
+              icon: '✅',
+              route: '/tenant/customers-loans?status=active',
+              description: 'View active loans',
+              permission: 'view_loans'
+            },
+            {
+              id: 'pending-loans',
+              label: 'Pending Loans',
+              icon: '⏳',
+              route: '/tenant/customers-loans?status=pending',
+              description: 'View pending loans',
+              permission: 'view_loans'
+            },
+            {
+              id: 'closed-loans',
+              label: 'Closed Loans',
+              icon: '✔️',
+              route: '/tenant/customers-loans?status=closed',
+              description: 'View closed loans',
+              permission: 'view_loans'
+            }
+          ]
         },
         {
           id: 'applications',
           label: 'Applications',
           icon: '📋',
-          route: '/tenant/loans/applications',
+          route: '/tenant/customers-loans/applications',
           description: 'Loan applications',
           permission: 'view_loan_applications'
         }
@@ -204,11 +256,37 @@ const MENU_CONFIG = {
       items: [
         {
           id: 'payments',
-          label: 'Payments',
+          label: 'All Payments',
           icon: '💳',
           route: '/tenant/payments',
           description: 'Process and track payments',
-          permission: 'view_payments'
+          permission: 'view_payments',
+          children: [
+            {
+              id: 'pending-payments',
+              label: 'Pending Payments',
+              icon: '⏳',
+              route: '/tenant/payments?status=pending',
+              description: 'Pending payment transactions',
+              permission: 'view_payments'
+            },
+            {
+              id: 'completed-payments',
+              label: 'Completed Payments',
+              icon: '✅',
+              route: '/tenant/payments?status=completed',
+              description: 'Completed payment transactions',
+              permission: 'view_payments'
+            },
+            {
+              id: 'failed-payments',
+              label: 'Failed Payments',
+              icon: '❌',
+              route: '/tenant/payments?status=failed',
+              description: 'Failed payment transactions',
+              permission: 'view_payments'
+            }
+          ]
         },
         {
           id: 'reconciliation',
@@ -228,15 +306,33 @@ const MENU_CONFIG = {
       items: [
         {
           id: 'tenant-settings',
-          label: 'Tenant Settings',
+          label: 'Organization Settings',
           icon: '⚙️',
           route: '/tenant/settings',
           description: 'Tenant configuration',
-          permission: 'manage_tenant_settings'
+          permission: 'manage_tenant_settings',
+          children: [
+            {
+              id: 'general-settings',
+              label: 'General Settings',
+              icon: '⚙️',
+              route: '/tenant/settings',
+              description: 'Organization info and settings',
+              permission: 'manage_tenant_settings'
+            },
+            {
+              id: 'billing',
+              label: 'Billing',
+              icon: '💵',
+              route: '/tenant/settings/billing',
+              description: 'Billing and payment methods',
+              permission: 'manage_billing'
+            }
+          ]
         },
         {
           id: 'tenant-roles',
-          label: 'Tenant Roles',
+          label: 'Roles & Permissions',
           icon: '👑',
           route: '/tenant/settings/roles',
           description: 'Manage tenant roles',
@@ -244,7 +340,7 @@ const MENU_CONFIG = {
         },
         {
           id: 'tenant-users',
-          label: 'Users',
+          label: 'Team Members',
           icon: '👤',
           route: '/tenant/users',
           description: 'Manage tenant users',
