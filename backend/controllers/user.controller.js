@@ -283,6 +283,17 @@ const updateUser = async (req, res) => {
 
     await client.query('COMMIT');
 
+    // Audit log: User updated
+    if (req.auditLog) {
+      await req.auditLog('UPDATE', 'USER', user.id, {
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        phone: user.phone,
+        passwordChanged: !!password
+      });
+    }
+
     res.json({
       success: true,
       user: {

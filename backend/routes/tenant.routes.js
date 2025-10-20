@@ -3,6 +3,7 @@ const router = express.Router();
 const tenantController = require('../controllers/tenant.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const { checkScope, checkPermission } = require('../middleware/rbac.middleware');
+const { auditLoggerMiddleware } = require('../middleware/audit-logger');
 
 // Public signup endpoint - NO AUTHENTICATION REQUIRED
 console.log('📝 [ROUTES] Registering PUBLIC POST /api/tenants for signup/registration');
@@ -16,6 +17,9 @@ router.post('/', (req, res, next) => {
 // All other tenant routes require authentication
 console.log('🔐 [ROUTES] Registering PROTECTED tenant routes (require auth)');
 router.use(authMiddleware);
+
+// Apply audit logging middleware after authentication
+router.use(auditLoggerMiddleware);
 
 // Routes that require platform scope (Super Admin only)
 router.get('/', checkScope('platform'), checkPermission('manage_tenants'), tenantController.getAllTenants);

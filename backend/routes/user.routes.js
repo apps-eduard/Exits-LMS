@@ -5,33 +5,38 @@ const auditController = require('../controllers/audit.controller');
 const authenticate = require('../middleware/auth.middleware');
 const { checkScope, checkPermission } = require('../middleware/rbac.middleware');
 const tenantIsolation = require('../middleware/tenant-isolation.middleware');
+const { auditLoggerMiddleware } = require('../middleware/audit-logger');
 
 // Get roles - accessible to all authenticated users
 router.get('/roles/list', authenticate, userController.getRoles);
 
+// Apply audit logging middleware after authentication for all subsequent routes
+router.use(authenticate);
+router.use(auditLoggerMiddleware);
+
 // Super Admin routes (platform scope)
-router.get('/', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.getAllUsers);
-router.post('/', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.createUser);
+router.get('/', checkScope('platform'), checkPermission('manage_users'), userController.getAllUsers);
+router.post('/', checkScope('platform'), checkPermission('manage_users'), userController.createUser);
 
 // Activity logs route (must be before /:id to avoid route collision)
-router.get('/activity', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.getActivityLogs);
+router.get('/activity', checkScope('platform'), checkPermission('manage_users'), userController.getActivityLogs);
 
 // Audit logs route (must be before /:id to avoid route collision)
-router.get('/audit', authenticate, checkScope('platform'), checkPermission('view_audit_logs'), auditController.getAuditLogs);
+router.get('/audit', checkScope('platform'), checkPermission('view_audit_logs'), auditController.getAuditLogs);
 
-router.get('/:id', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.getUserById);
-router.put('/:id', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.updateUser);
-router.patch('/:id/status', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.toggleUserStatus);
-router.delete('/:id', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.deleteUser);
-router.post('/:id/reset-password', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.resetPassword);
+router.get('/:id', checkScope('platform'), checkPermission('manage_users'), userController.getUserById);
+router.put('/:id', checkScope('platform'), checkPermission('manage_users'), userController.updateUser);
+router.patch('/:id/status', checkScope('platform'), checkPermission('manage_users'), userController.toggleUserStatus);
+router.delete('/:id', checkScope('platform'), checkPermission('manage_users'), userController.deleteUser);
+router.post('/:id/reset-password', checkScope('platform'), checkPermission('manage_users'), userController.resetPassword);
 
 // Tenant routes - for tenant admins to manage their own users
-router.get('/tenant/me', authenticate, tenantIsolation, userController.getCurrentUserProfile);
-router.get('/tenant/users', authenticate, tenantIsolation, checkPermission('manage_users'), userController.getTenantUsers);
-router.post('/tenant/users', authenticate, tenantIsolation, checkPermission('manage_users'), userController.createTenantUser);
-router.get('/tenant/users/:id', authenticate, tenantIsolation, checkPermission('manage_users'), userController.getTenantUserById);
-router.put('/tenant/users/:id', authenticate, tenantIsolation, checkPermission('manage_users'), userController.updateTenantUser);
-router.patch('/tenant/users/:id/status', authenticate, tenantIsolation, checkPermission('manage_users'), userController.toggleTenantUserStatus);
-router.delete('/tenant/users/:id', authenticate, tenantIsolation, checkPermission('manage_users'), userController.deleteTenantUser);
+router.get('/tenant/me', tenantIsolation, userController.getCurrentUserProfile);
+router.get('/tenant/users', tenantIsolation, checkPermission('manage_users'), userController.getTenantUsers);
+router.post('/tenant/users', tenantIsolation, checkPermission('manage_users'), userController.createTenantUser);
+router.get('/tenant/users/:id', tenantIsolation, checkPermission('manage_users'), userController.getTenantUserById);
+router.put('/tenant/users/:id', tenantIsolation, checkPermission('manage_users'), userController.updateTenantUser);
+router.patch('/tenant/users/:id/status', tenantIsolation, checkPermission('manage_users'), userController.toggleTenantUserStatus);
+router.delete('/tenant/users/:id', tenantIsolation, checkPermission('manage_users'), userController.deleteTenantUser);
 
 module.exports = router;
