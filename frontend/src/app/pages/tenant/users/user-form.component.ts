@@ -223,10 +223,37 @@ export class UserFormComponent implements OnInit {
       delete formValue.confirm_password; // Never send confirm_password to backend
     }
 
+    // Transform snake_case to camelCase for backend
+    const transformedData: any = {
+      first_name: formValue.first_name,
+      last_name: formValue.last_name,
+      email: formValue.email,
+      phone: formValue.phone,
+      password: formValue.password,
+      role_name: formValue.role_name,
+      street_address: formValue.street_address,
+      barangay: formValue.barangay,
+      city: formValue.city,
+      province: formValue.province,
+      region: formValue.region,
+      postal_code: formValue.postal_code,
+      country: formValue.country
+    };
+
+    // Convert snake_case to camelCase
+    const camelCaseData: any = {};
+    for (const key in transformedData) {
+      if (transformedData[key as keyof typeof transformedData] !== undefined && 
+          transformedData[key as keyof typeof transformedData] !== null) {
+        const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+        camelCaseData[camelKey] = transformedData[key as keyof typeof transformedData];
+      }
+    }
+
     if (this.isEditMode && this.userId) {
-      this.updateUser(this.userId, formValue);
+      this.updateUser(this.userId, camelCaseData);
     } else {
-      this.createUser(formValue);
+      this.createUser(camelCaseData);
     }
   }
 
