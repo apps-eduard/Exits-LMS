@@ -101,6 +101,21 @@ export class AuditLogsComponent implements OnInit {
     this.applyFilters();
   }
 
+  onFilterActionChange(value: string): void {
+    this.filterAction.set(value);
+    this.applyFilters();
+  }
+
+  onFilterStatusChange(value: string): void {
+    this.filterStatus.set(value);
+    this.applyFilters();
+  }
+
+  onSearchChange(value: string): void {
+    this.searchTerm.set(value);
+    this.onSearch();
+  }
+
   applyFilters(): void {
     let filtered = this.auditLogs();
 

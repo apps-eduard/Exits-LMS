@@ -20,7 +20,7 @@
           <input
             type="text"
             [value]="searchTerm()"
-            (input)="searchTerm.set($event.target.value); onSearch()"
+            (input)="onSearchChange($any($event.target).value)"
             placeholder="Search by user, action, or details..."
             class="input-field"
           />
@@ -35,8 +35,9 @@
         <label class="block text-sm font-medium text-gray-300 mb-2">Action</label>
         <select 
           [value]="filterAction()"
-          (change)="filterAction.set($event.target.value); applyFilters()"
-          class="input-field">
+          (change)="onFilterActionChange($any($event.target).value)"
+          class="input-field"
+          title="Filter by action">
           <option value="all">All Actions</option>
           <option value="CREATE_TENANT">Create Tenant</option>
           <option value="UPDATE_TENANT">Update Tenant</option>
@@ -50,8 +51,9 @@
         <label class="block text-sm font-medium text-gray-300 mb-2">Status</label>
         <select 
           [value]="filterStatus()"
-          (change)="filterStatus.set($event.target.value); applyFilters()"
-          class="input-field">
+          (change)="onFilterStatusChange($any($event.target).value)"
+          class="input-field"
+          title="Filter by status">
           <option value="all">All Status</option>
           <option value="success">Success</option>
           <option value="failed">Failed</option>
