@@ -255,6 +255,10 @@ const updateTenant = async (req, res) => {
 
     // Update or create address if provided (only if street_address has a value)
     if (street_address) {
+      console.log('📍 [UPDATING_ADDRESS] Address data received:', {
+        street_address, city, barangay, province, region, postal_code, country
+      });
+      
       const existingAddr = await client.query(
         'SELECT id FROM addresses WHERE entity_type = $1 AND entity_id = $2 AND is_primary = true',
         ['tenant', id]
@@ -262,6 +266,7 @@ const updateTenant = async (req, res) => {
 
       if (existingAddr.rows.length > 0) {
         // Update existing address
+        console.log('🔄 [UPDATING_EXISTING_ADDRESS]', { addressId: existingAddr.rows[0].id });
         await client.query(
           `UPDATE addresses SET
             street_address = COALESCE($1, street_address),
@@ -275,8 +280,10 @@ const updateTenant = async (req, res) => {
            WHERE id = $8`,
           [street_address, city || null, barangay || null, province || null, region || null, postal_code || null, country || 'Philippines', existingAddr.rows[0].id]
         );
+        console.log('✅ [ADDRESS_UPDATED]');
       } else {
         // Create new address only if street_address is provided
+        console.log('➕ [CREATING_NEW_ADDRESS]');
         const addrResult = await client.query(
           `INSERT INTO addresses (tenant_id, entity_type, entity_id, street_address, city, barangay, province, region, postal_code, country, is_primary, address_type)
            VALUES ($1, 'tenant', $2, $3, $4, $5, $6, $7, $8, $9, true, 'primary')
@@ -289,7 +296,10 @@ const updateTenant = async (req, res) => {
           'UPDATE tenants SET address_id = $1 WHERE id = $2',
           [addrResult.rows[0].id, tenant.id]
         );
+        console.log('✅ [ADDRESS_CREATED_AND_LINKED]', { addressId: addrResult.rows[0].id });
       }
+    } else {
+      console.log('ℹ️ [NO_ADDRESS_UPDATE] street_address not provided');
     }
 
     // Update module settings if provided
@@ -331,9 +341,29 @@ const updateTenant = async (req, res) => {
 
     await client.query('COMMIT');
     
+    // Fetch complete tenant data WITH address fields
+    const completeResult = await client.query(
+      `SELECT t.*,
+              json_agg(DISTINCT jsonb_build_object('module', tf.module_name, 'enabled', tf.is_enabled)) as modules,
+              a.street_address, a.barangay, a.city, a.province, a.region, a.postal_code, a.country
+       FROM tenants t
+       LEFT JOIN tenant_features tf ON t.id = tf.tenant_id
+       LEFT JOIN addresses a ON t.address_id = a.id
+       WHERE t.id = $1
+       GROUP BY t.id, a.street_address, a.barangay, a.city, a.province, a.region, a.postal_code, a.country`,
+      [id]
+    );
+    
+    const completeTenant = completeResult.rows[0];
+    console.log('✅ [TENANT_UPDATED] Update complete with address:', {
+      id: completeTenant.id,
+      name: completeTenant.name,
+      address: completeTenant.street_address
+    });
+    
     res.json({
       success: true,
-      tenant,
+      tenant: completeTenant,
       message: 'Tenant updated successfully',
     });
   } catch (error) {
