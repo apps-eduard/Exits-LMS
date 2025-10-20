@@ -290,36 +290,65 @@ export class MenuService {
     const sections: NavSection[] = [];
     
     // Helper function to recursively convert a menu and its children to NavItem
-    const convertToNavItem = (menu: Menu): NavItem => {
+    const convertToNavItem = (menu: Menu, includeChildren: boolean = true): NavItem => {
+      // Parse route and query parameters
+      let route = menu.route;
+      let queryParams: Record<string, string> = {};
+      
+      if (route && route.includes('?')) {
+        const [path, queryString] = route.split('?');
+        route = path;
+        
+        // Parse query string to object
+        const params = new URLSearchParams(queryString);
+        params.forEach((value, key) => {
+          queryParams[key] = value;
+        });
+      }
+      
       const item: NavItem = {
         id: menu.id || menu.slug,
         label: menu.name,
         icon: menu.icon || '📋',
-        route: menu.route,
+        route: route,
+        queryParams: Object.keys(queryParams).length > 0 ? queryParams : undefined,
         description: menu.route,
         permission: undefined,
         visible: menu.isActive
       };
       
-      // Recursively convert children if they exist
-      if (menu.children && menu.children.length > 0) {
-        item.children = menu.children.map(child => convertToNavItem(child));
+      // Recursively convert children if they exist and includeChildren is true
+      if (includeChildren && menu.children && menu.children.length > 0) {
+        item.children = menu.children.map(child => convertToNavItem(child, true));
       }
       
       return item;
     };
     
     // Each root menu becomes a section
-    menus.forEach(menu => {
-      const section: NavSection = {
-        id: menu.slug,
-        title: menu.name,
-        description: menu.route || '',
-        order: menu.orderIndex || 0,
-        items: [convertToNavItem(menu)]
-      };
-      
-      sections.push(section);
+    menus.forEach((menu, index) => {
+      // If menu has children, create section with children as items (no nesting)
+      if (menu.children && menu.children.length > 0) {
+        const section: NavSection = {
+          id: menu.slug,
+          title: menu.name,
+          description: menu.route || '',
+          order: menu.orderIndex !== undefined && menu.orderIndex !== null ? menu.orderIndex : index,
+          // Children become direct items (no nested parent, no recursive children)
+          items: menu.children.map(child => convertToNavItem(child, false))
+        };
+        sections.push(section);
+      } else {
+        // If no children, create a section with the menu itself as the only item
+        const section: NavSection = {
+          id: menu.slug,
+          title: menu.name,
+          description: menu.route || '',
+          order: menu.orderIndex !== undefined && menu.orderIndex !== null ? menu.orderIndex : index,
+          items: [convertToNavItem(menu, false)]
+        };
+        sections.push(section);
+      }
     });
 
     // Sort by order
@@ -399,9 +428,9 @@ export class MenuService {
   getFallbackPlatformMenu(): NavSection[] {
     return [
       {
-        id: 'overview',
-        title: 'Overview',
-        description: 'System Dashboard & Quick Stats',
+        id: 'dashboard',
+        title: 'Dashboard',
+        description: 'Main dashboard overview',
         order: 1,
         items: [
           { 
@@ -409,7 +438,15 @@ export class MenuService {
             icon: '🏠', 
             route: '/super-admin/dashboard',
             description: 'Quick stats: tenants, users, loans, system health'
-          },
+          }
+        ]
+      },
+      {
+        id: 'audit-logs',
+        title: 'Audit Logs',
+        description: 'System activity tracking',
+        order: 2,
+        items: [
           { 
             label: 'Audit Logs', 
             icon: '📝', 
@@ -419,10 +456,134 @@ export class MenuService {
         ]
       },
       {
+        id: 'tenants',
+        title: 'All Tenants',
+        description: 'Manage all tenant organizations',
+        order: 3,
+        items: [
+          { 
+            label: 'All Tenants', 
+            icon: '🏢', 
+            route: '/super-admin/tenants',
+            description: 'View and manage all tenant organizations'
+          },
+          { 
+            label: 'Tenant Requests', 
+            icon: '📋', 
+            route: '/super-admin/tenant-requests',
+            description: 'Review new tenant applications'
+          },
+          { 
+            label: 'Tenant Analytics', 
+            icon: '📊', 
+            route: '/super-admin/tenant-analytics',
+            description: 'Tenant usage and performance metrics'
+          }
+        ]
+      },
+      {
+        id: 'system-analytics',
+        title: 'System Analytics',
+        description: 'Platform-wide statistics',
+        order: 4,
+        items: [
+          { 
+            label: 'System Overview', 
+            icon: '📈', 
+            route: '/super-admin/analytics/overview',
+            description: 'Overall system performance'
+          },
+          { 
+            label: 'User Activity', 
+            icon: '👤', 
+            route: '/super-admin/analytics/users',
+            description: 'User engagement statistics'
+          },
+          { 
+            label: 'Revenue Reports', 
+            icon: '💰', 
+            route: '/super-admin/analytics/revenue',
+            description: 'Financial analytics and reports'
+          }
+        ]
+      },
+      {
+        id: 'subscriptions',
+        title: 'All Subscriptions',
+        description: 'Manage subscription plans',
+        order: 5,
+        items: [
+          { 
+            label: 'Active Subscriptions', 
+            icon: '✅', 
+            route: '/super-admin/subscriptions/active',
+            description: 'View active subscription plans'
+          },
+          { 
+            label: 'Plan Management', 
+            icon: '�', 
+            route: '/super-admin/subscriptions/plans',
+            description: 'Create and manage subscription tiers'
+          },
+          { 
+            label: 'Billing History', 
+            icon: '💳', 
+            route: '/super-admin/subscriptions/billing',
+            description: 'Transaction and payment records'
+          }
+        ]
+      },
+      {
+        id: 'notifications',
+        title: 'System Notifications',
+        description: 'Platform-wide alerts',
+        order: 6,
+        items: [
+          { 
+            label: 'Send Notification', 
+            icon: '📢', 
+            route: '/super-admin/notifications/send',
+            description: 'Broadcast messages to users'
+          },
+          { 
+            label: 'Notification History', 
+            icon: '📬', 
+            route: '/super-admin/notifications/history',
+            description: 'Past notifications log'
+          }
+        ]
+      },
+      {
+        id: 'health-check',
+        title: 'Health Check',
+        description: 'System diagnostics',
+        order: 7,
+        items: [
+          { 
+            label: 'System Status', 
+            icon: '💚', 
+            route: '/super-admin/health/status',
+            description: 'Server and service health'
+          },
+          { 
+            label: 'Database Monitor', 
+            icon: '🗄️', 
+            route: '/super-admin/health/database',
+            description: 'Database performance metrics'
+          },
+          { 
+            label: 'Error Logs', 
+            icon: '🚨', 
+            route: '/super-admin/health/errors',
+            description: 'System error tracking'
+          }
+        ]
+      },
+      {
         id: 'settings',
-        title: 'System Settings',
+        title: 'Settings',
         description: 'Configuration and administration',
-        order: 2,
+        order: 8,
         items: [
           { 
             label: 'System Roles', 
@@ -441,6 +602,38 @@ export class MenuService {
             icon: '👥', 
             route: '/super-admin/users',
             description: 'Manage system users'
+          },
+          { 
+            label: 'Email Templates', 
+            icon: '✉️', 
+            route: '/super-admin/settings/email-templates',
+            description: 'Customize system email templates'
+          },
+          { 
+            label: 'System Settings', 
+            icon: '⚙️', 
+            route: '/super-admin/settings/general',
+            description: 'General platform configuration'
+          },
+          { 
+            label: 'API Settings', 
+            icon: '🔌', 
+            route: '/super-admin/settings/api',
+            description: 'API keys and integrations'
+          }
+        ]
+      },
+      {
+        id: 'system-users',
+        title: 'System Users',
+        description: 'Platform administrators',
+        order: 9,
+        items: [
+          { 
+            label: 'System Users', 
+            icon: '👨‍💼', 
+            route: '/super-admin/users',
+            description: 'Manage platform admin users'
           }
         ]
       }
@@ -453,9 +646,9 @@ export class MenuService {
   getFallbackTenantMenu(): NavSection[] {
     return [
       {
-        id: 'overview',
-        title: 'Dashboard & Overview',
-        description: 'Quick snapshot of daily activity',
+        id: 'dashboard',
+        title: 'Dashboard',
+        description: 'Main dashboard overview',
         order: 1,
         items: [
           { 
@@ -467,14 +660,182 @@ export class MenuService {
         ]
       },
       {
-        id: 'settings',
-        title: 'Settings',
-        description: 'Tenant configuration',
+        id: 'customers',
+        title: 'Customers',
+        description: 'Customer management',
         order: 2,
         items: [
           { 
-            label: 'Tenant Roles', 
+            label: 'All Customers', 
             icon: '👥', 
+            route: '/tenant/customers',
+            description: 'View and manage all customers'
+          },
+          { 
+            label: 'Add Customer', 
+            icon: '➕', 
+            route: '/tenant/customers/create',
+            description: 'Register new customer'
+          },
+          { 
+            label: 'Customer Groups', 
+            icon: '👨‍👩‍👧‍👦', 
+            route: '/tenant/customers/groups',
+            description: 'Organize customers into groups'
+          }
+        ]
+      },
+      {
+        id: 'loans',
+        title: 'Loans',
+        description: 'Loan management',
+        order: 3,
+        items: [
+          { 
+            label: 'All Loans', 
+            icon: '💰', 
+            route: '/tenant/loans',
+            description: 'View and manage all loans'
+          },
+          { 
+            label: 'New Loan', 
+            icon: '📝', 
+            route: '/tenant/loans/create',
+            description: 'Create new loan application'
+          },
+          { 
+            label: 'Loan Requests', 
+            icon: '📋', 
+            route: '/tenant/loans/requests',
+            description: 'Pending loan applications'
+          },
+          { 
+            label: 'Repayment Schedule', 
+            icon: '📅', 
+            route: '/tenant/loans/schedule',
+            description: 'Track payment schedules'
+          }
+        ]
+      },
+      {
+        id: 'payments',
+        title: 'Payments',
+        description: 'Payment processing',
+        order: 4,
+        items: [
+          { 
+            label: 'All Payments', 
+            icon: '💳', 
+            route: '/tenant/payments',
+            description: 'View payment history'
+          },
+          { 
+            label: 'Record Payment', 
+            icon: '✅', 
+            route: '/tenant/payments/record',
+            description: 'Add new payment record'
+          },
+          { 
+            label: 'Overdue Payments', 
+            icon: '⚠️', 
+            route: '/tenant/payments/overdue',
+            description: 'Track late payments'
+          }
+        ]
+      },
+      {
+        id: 'reports',
+        title: 'Reports & Analytics',
+        description: 'Business intelligence',
+        order: 5,
+        items: [
+          { 
+            label: 'Financial Reports', 
+            icon: '📊', 
+            route: '/tenant/reports/financial',
+            description: 'Income and expense reports'
+          },
+          { 
+            label: 'Loan Analytics', 
+            icon: '📈', 
+            route: '/tenant/reports/loans',
+            description: 'Loan performance metrics'
+          },
+          { 
+            label: 'Customer Analytics', 
+            icon: '👤', 
+            route: '/tenant/reports/customers',
+            description: 'Customer behavior insights'
+          },
+          { 
+            label: 'Export Data', 
+            icon: '📥', 
+            route: '/tenant/reports/export',
+            description: 'Download reports and data'
+          }
+        ]
+      },
+      {
+        id: 'collections',
+        title: 'Collections',
+        description: 'Debt collection management',
+        order: 6,
+        items: [
+          { 
+            label: 'Collection Queue', 
+            icon: '📞', 
+            route: '/tenant/collections/queue',
+            description: 'Accounts requiring follow-up'
+          },
+          { 
+            label: 'Collection History', 
+            icon: '📜', 
+            route: '/tenant/collections/history',
+            description: 'Past collection activities'
+          }
+        ]
+      },
+      {
+        id: 'notifications',
+        title: 'Notifications',
+        description: 'Communication center',
+        order: 7,
+        items: [
+          { 
+            label: 'Send SMS', 
+            icon: '💬', 
+            route: '/tenant/notifications/sms',
+            description: 'Send text messages to customers'
+          },
+          { 
+            label: 'Send Email', 
+            icon: '✉️', 
+            route: '/tenant/notifications/email',
+            description: 'Send email notifications'
+          },
+          { 
+            label: 'Notification History', 
+            icon: '📬', 
+            route: '/tenant/notifications/history',
+            description: 'View sent notifications'
+          }
+        ]
+      },
+      {
+        id: 'settings',
+        title: 'Settings',
+        description: 'Tenant configuration',
+        order: 8,
+        items: [
+          { 
+            label: 'Tenant Profile', 
+            icon: '🏢', 
+            route: '/tenant/settings/profile',
+            description: 'Organization information'
+          },
+          { 
+            label: 'Tenant Roles', 
+            icon: '�', 
             route: '/tenant/settings/roles',
             description: 'Manage tenant roles'
           },
@@ -483,6 +844,44 @@ export class MenuService {
             icon: '👤', 
             route: '/tenant/users',
             description: 'Manage tenant users'
+          },
+          { 
+            label: 'Loan Products', 
+            icon: '💼', 
+            route: '/tenant/settings/loan-products',
+            description: 'Configure loan types and terms'
+          },
+          { 
+            label: 'Interest Rates', 
+            icon: '📊', 
+            route: '/tenant/settings/interest-rates',
+            description: 'Set interest rate policies'
+          },
+          { 
+            label: 'Email Templates', 
+            icon: '📧', 
+            route: '/tenant/settings/email-templates',
+            description: 'Customize notification templates'
+          },
+          { 
+            label: 'Payment Methods', 
+            icon: '💳', 
+            route: '/tenant/settings/payment-methods',
+            description: 'Configure accepted payment types'
+          }
+        ]
+      },
+      {
+        id: 'staff',
+        title: 'Staff',
+        description: 'Staff management',
+        order: 9,
+        items: [
+          { 
+            label: 'Staff Members', 
+            icon: '👨‍💼', 
+            route: '/tenant/users',
+            description: 'Manage staff accounts'
           }
         ]
       }

@@ -78,7 +78,7 @@ export class TenantLayoutComponent implements OnInit {
     this.loadingMenu.set(true);
     this.menuError.set(null);
 
-    this.menuService.getTenantMenu().subscribe({
+    this.menuService.getDynamicTenantMenu().subscribe({
       next: (menu) => {
         this.navSections.set(menu);
         this.loadingMenu.set(false);
@@ -95,6 +95,10 @@ export class TenantLayoutComponent implements OnInit {
         // Use fallback menu
         const fallback = this.menuService.getFallbackTenantMenu();
         this.navSections.set(fallback);
+        // Expand first section by default
+        if (fallback.length > 0) {
+          this.expandedSections.set(new Set([fallback[0].title]));
+        }
       }
     });
   }

@@ -207,8 +207,19 @@ const updateUser = async (req, res) => {
     await client.query('BEGIN');
 
     const { id } = req.params;
-    const { firstName, lastName, phone, email, password, 
+    const { firstName, lastName, phone, email, password, roleName, is_active,
             street_address, barangay, city, province, region, postal_code, country } = req.body;
+
+    // If roleName is provided, get the role ID
+    let roleId = null;
+    if (roleName) {
+      const roleResult = await client.query('SELECT id FROM roles WHERE name = $1', [roleName]);
+      if (roleResult.rows.length === 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Invalid role' });
+      }
+      roleId = roleResult.rows[0].id;
+    }
 
     // Update user
     let updateQuery = `
@@ -222,6 +233,20 @@ const updateUser = async (req, res) => {
     
     const params = [email || null, firstName || null, lastName || null, phone || null];
     let paramCount = 4;
+
+    // Add role_id update if roleName provided
+    if (roleId) {
+      params.push(roleId);
+      paramCount++;
+      updateQuery += `, role_id = $${paramCount}`;
+    }
+
+    // Add is_active update if provided
+    if (is_active !== undefined && is_active !== null) {
+      params.push(is_active);
+      paramCount++;
+      updateQuery += `, is_active = $${paramCount}`;
+    }
 
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);

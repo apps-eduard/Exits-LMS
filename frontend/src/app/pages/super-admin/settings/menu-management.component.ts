@@ -934,7 +934,7 @@ export class MenuManagementComponent implements OnInit {
       parentMenuId: menu.parentMenuId || null,
       icon: menu.icon || '',
       route: menu.route || '',
-      orderIndex: menu.orderIndex || 0,
+      orderIndex: menu.orderIndex !== undefined && menu.orderIndex !== null ? menu.orderIndex : 0,
       isActive: menu.isActive !== false
     });
     this.selectedIcon.set(menu.icon || '');

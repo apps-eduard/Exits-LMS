@@ -4,11 +4,12 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { SettingsService } from '../../../core/services/settings.service';
 import { ProfileSettingsComponent } from './profile-settings.component';
 import { MenuManagementComponent } from './menu-management.component';
+import { PermissionMatrixComponent } from './permission-matrix.component';
 
 @Component({
   selector: 'app-super-admin-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, ProfileSettingsComponent, MenuManagementComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ProfileSettingsComponent, MenuManagementComponent, PermissionMatrixComponent],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss'
 })

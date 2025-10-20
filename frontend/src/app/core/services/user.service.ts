@@ -40,6 +40,8 @@ export interface UpdateUserRequest {
   phone?: string;
   email?: string;
   password?: string;
+  roleName?: string;
+  is_active?: boolean;
   street_address?: string;
   city?: string;
   state_province?: string;

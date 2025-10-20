@@ -35,9 +35,23 @@ exports.getAllMenus = async (req, res) => {
 
     const result = await db.query(query, params);
     
-    console.log(`[GET_ALL_MENUS] Returning ${result.rows.length} menus for scope: ${scope}, super admin: ${isSuperAdmin}`);
+    // Transform snake_case to camelCase
+    const menus = result.rows.map(menu => ({
+      id: menu.id,
+      name: menu.name,
+      slug: menu.slug,
+      icon: menu.icon,
+      route: menu.route,
+      scope: menu.scope,
+      isActive: menu.is_active,
+      orderIndex: menu.order_index,
+      parentMenuId: menu.parent_menu_id,
+      tenantId: menu.tenant_id
+    }));
     
-    res.json(result.rows);
+    console.log(`[GET_ALL_MENUS] Returning ${menus.length} menus for scope: ${scope}, super admin: ${isSuperAdmin}`);
+    
+    res.json(menus);
   } catch (error) {
     console.error('Error fetching menus:', error);
     res.status(500).json({ error: 'Failed to fetch menus' });
@@ -306,7 +320,16 @@ exports.getMenuTree = async (req, res) => {
       return allMenus
         .filter(menu => menu.parent_menu_id === parentId)
         .map(menu => ({
-          ...menu,
+          id: menu.id,
+          name: menu.name,
+          slug: menu.slug,
+          icon: menu.icon,
+          route: menu.route,
+          scope: menu.scope,
+          isActive: menu.is_active,
+          orderIndex: menu.order_index,
+          parentMenuId: menu.parent_menu_id,
+          tenantId: menu.tenant_id,
           children: buildTree(menu.id)
         }));
     };

@@ -426,6 +426,33 @@ router.get('/static/tenant', (req, res) => {
 });
 
 /**
+ * GET /api/menus/user-menus - Get menus accessible to the current user
+ * Based on role menu assignments
+ */
+router.get('/user-menus', async (req, res) => {
+  try {
+    const roleMenusController = require('../controllers/role-menus.controller');
+    await roleMenusController.getUserMenus(req, res);
+  } catch (error) {
+    console.error('Error getting user menus:', error);
+    res.status(500).json({ error: 'Failed to get user menus' });
+  }
+});
+
+/**
+ * GET /api/menus/available - Get all available menus for assignment
+ */
+router.get('/available', async (req, res) => {
+  try {
+    const roleMenusController = require('../controllers/role-menus.controller');
+    await roleMenusController.getAvailableMenus(req, res);
+  } catch (error) {
+    console.error('Error getting available menus:', error);
+    res.status(500).json({ error: 'Failed to get available menus' });
+  }
+});
+
+/**
  * Helper function to filter menu items by permissions
  * If isSuperAdmin is true, show all items regardless of permissions
  */

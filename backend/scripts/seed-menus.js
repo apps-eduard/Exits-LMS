@@ -10,51 +10,51 @@ const { v4: uuidv4 } = require('uuid');
 // Complete menu structure with all enterprise features
 const MENU_DATA = {
   platform: [
-    // Overview Section (1-2)
+    // Overview Section (1-3)
     { name: 'Dashboard', slug: 'dashboard', icon: '🏠', route: '/super-admin/dashboard', order: 1, parent: null },
     { name: 'Audit Logs', slug: 'audit-logs', icon: '📋', route: '/super-admin/audit-logs', order: 2, parent: null },
+    { name: 'System Logs', slug: 'system-logs', icon: '📝', route: '/super-admin/system-logs', order: 3, parent: null },
     
-    // Tenant Management Section (3-6)
-    { name: 'All Tenants', slug: 'tenants', icon: '🏢', route: '/super-admin/tenants', order: 3, parent: null },
-    { name: 'Active Tenants', slug: 'active-tenants', icon: '✅', route: '/super-admin/tenants?status=active', order: 4, parent: 'tenants' },
-    { name: 'Suspended Tenants', slug: 'suspended-tenants', icon: '⏸️', route: '/super-admin/tenants?status=suspended', order: 5, parent: 'tenants' },
-    { name: 'Create Tenant', slug: 'create-tenant', icon: '➕', route: '/super-admin/tenants/create', order: 6, parent: 'tenants' },
+    // Tenant Management Section (4-7)
+    { name: 'All Tenants', slug: 'tenants', icon: '🏢', route: '/super-admin/tenants', order: 4, parent: null },
+    { name: 'Active Tenants', slug: 'active-tenants', icon: '✅', route: '/super-admin/tenants?status=active', order: 5, parent: 'tenants' },
+    { name: 'Suspended Tenants', slug: 'suspended-tenants', icon: '⏸️', route: '/super-admin/tenants?status=suspended', order: 6, parent: 'tenants' },
+    { name: 'Create Tenant', slug: 'create-tenant', icon: '➕', route: '/super-admin/tenants/create', order: 7, parent: 'tenants' },
     
-    // Analytics & Reports Section (7-10)
-    { name: 'System Analytics', slug: 'analytics', icon: '📈', route: '/super-admin/analytics', order: 7, parent: null },
-    { name: 'Revenue Reports', slug: 'revenue-reports', icon: '💰', route: '/super-admin/reports/revenue', order: 8, parent: 'analytics' },
-    { name: 'User Activity Reports', slug: 'user-activity-reports', icon: '👥', route: '/super-admin/reports/user-activity', order: 9, parent: 'analytics' },
-    { name: 'Tenant Usage Reports', slug: 'tenant-usage-reports', icon: '🏢', route: '/super-admin/reports/tenant-usage', order: 10, parent: 'analytics' },
+    // Analytics & Reports Section (8-11)
+    { name: 'System Analytics', slug: 'analytics', icon: '📈', route: '/super-admin/analytics', order: 8, parent: null },
+    { name: 'Revenue Reports', slug: 'revenue-reports', icon: '💰', route: '/super-admin/reports/revenue', order: 9, parent: 'analytics' },
+    { name: 'User Activity Reports', slug: 'user-activity-reports', icon: '👥', route: '/super-admin/reports/user-activity', order: 10, parent: 'analytics' },
+    { name: 'Tenant Usage Reports', slug: 'tenant-usage-reports', icon: '🏢', route: '/super-admin/reports/tenant-usage', order: 11, parent: 'analytics' },
     
-    // Billing & Subscriptions Section (11-14)
-    { name: 'All Subscriptions', slug: 'subscriptions', icon: '💳', route: '/super-admin/subscriptions', order: 11, parent: null },
-    { name: 'Subscription Plans', slug: 'plans', icon: '📦', route: '/super-admin/plans', order: 12, parent: 'subscriptions' },
-    { name: 'Invoices', slug: 'invoices', icon: '🧾', route: '/super-admin/invoices', order: 13, parent: 'subscriptions' },
-    { name: 'Payments', slug: 'platform-payments', icon: '💵', route: '/super-admin/payments', order: 14, parent: 'subscriptions' },
+    // Billing & Subscriptions Section (12-15)
+    { name: 'All Subscriptions', slug: 'subscriptions', icon: '💳', route: '/super-admin/subscriptions', order: 12, parent: null },
+    { name: 'Subscription Plans', slug: 'plans', icon: '📦', route: '/super-admin/plans', order: 13, parent: 'subscriptions' },
+    { name: 'Invoices', slug: 'invoices', icon: '🧾', route: '/super-admin/invoices', order: 14, parent: 'subscriptions' },
+    { name: 'Payments', slug: 'platform-payments', icon: '💵', route: '/super-admin/payments', order: 15, parent: 'subscriptions' },
     
-    // Notifications Section (15-17)
-    { name: 'System Notifications', slug: 'notifications', icon: '📬', route: '/super-admin/notifications', order: 15, parent: null },
-    { name: 'Alerts', slug: 'alerts', icon: '🔔', route: '/super-admin/alerts', order: 16, parent: 'notifications' },
-    { name: 'Announcements', slug: 'announcements', icon: '📨', route: '/super-admin/announcements', order: 17, parent: 'notifications' },
+    // Notifications Section (16-18)
+    { name: 'System Notifications', slug: 'notifications', icon: '📬', route: '/super-admin/notifications', order: 16, parent: null },
+    { name: 'Alerts', slug: 'alerts', icon: '🔔', route: '/super-admin/alerts', order: 17, parent: 'notifications' },
+    { name: 'Announcements', slug: 'announcements', icon: '📨', route: '/super-admin/announcements', order: 18, parent: 'notifications' },
     
-    // System Health Section (18-21)
-    { name: 'Health Check', slug: 'health', icon: '🏥', route: '/super-admin/health', order: 18, parent: null },
-    { name: 'Performance Metrics', slug: 'metrics', icon: '📊', route: '/super-admin/metrics', order: 19, parent: 'health' },
-    { name: 'Error Logs', slug: 'errors', icon: '🐛', route: '/super-admin/errors', order: 20, parent: 'health' },
-    { name: 'Background Jobs', slug: 'jobs', icon: '🔄', route: '/super-admin/jobs', order: 21, parent: 'health' },
+    // System Health Section (19-22)
+    { name: 'Health Check', slug: 'health', icon: '🏥', route: '/super-admin/health', order: 19, parent: null },
+    { name: 'Performance Metrics', slug: 'metrics', icon: '📊', route: '/super-admin/metrics', order: 20, parent: 'health' },
+    { name: 'Error Logs', slug: 'errors', icon: '🐛', route: '/super-admin/errors', order: 21, parent: 'health' },
+    { name: 'Background Jobs', slug: 'jobs', icon: '🔄', route: '/super-admin/jobs', order: 22, parent: 'health' },
     
-    // Settings Section (22-30)
-    { name: 'Settings', slug: 'settings', icon: '⚙️', route: '/super-admin/settings', order: 22, parent: null },
-    { name: 'System Roles', slug: 'roles', icon: '👥', route: '/super-admin/settings/roles', order: 23, parent: 'settings' },
-    { name: 'Menu Management', slug: 'menu-management', icon: '🎨', route: '/super-admin/settings/menus', order: 24, parent: 'settings' },
-    { name: 'Email Templates', slug: 'email-templates', icon: '📧', route: '/super-admin/settings/email-templates', order: 25, parent: 'settings' },
-    { name: 'Email Configuration', slug: 'email-config', icon: '✉️', route: '/super-admin/settings/email-config', order: 26, parent: 'settings' },
-    { name: 'Security Settings', slug: 'security-settings', icon: '🔐', route: '/super-admin/settings/security', order: 27, parent: 'settings' },
-    { name: 'API Management', slug: 'api-management', icon: '🌐', route: '/super-admin/settings/api-keys', order: 28, parent: 'settings' },
+    // Settings Section (23-29)
+    { name: 'Settings', slug: 'settings', icon: '⚙️', route: '/super-admin/settings', order: 23, parent: null },
+    { name: 'System Roles', slug: 'roles', icon: '👥', route: '/super-admin/settings/roles', order: 24, parent: 'settings' },
+    { name: 'Menu Management', slug: 'menu-management', icon: '🎨', route: '/super-admin/settings/menus', order: 25, parent: 'settings' },
+    { name: 'Email Templates', slug: 'email-templates', icon: '📧', route: '/super-admin/settings/email-templates', order: 26, parent: 'settings' },
+    { name: 'Email Configuration', slug: 'email-config', icon: '✉️', route: '/super-admin/settings/email-config', order: 27, parent: 'settings' },
+    { name: 'Security Settings', slug: 'security-settings', icon: '🔐', route: '/super-admin/settings/security', order: 28, parent: 'settings' },
+    { name: 'API Management', slug: 'api-management', icon: '🌐', route: '/super-admin/settings/api-keys', order: 29, parent: 'settings' },
     
-    // System Team Section (29-30)
-    { name: 'Team Members', slug: 'team-members', icon: '👨‍💼', route: '/super-admin/team', order: 29, parent: null },
-    { name: 'Activity Logs', slug: 'user-activity', icon: '📊', route: '/super-admin/team/activity', order: 30, parent: 'team-members' }
+    // System Users Section (30)
+    { name: 'System Users', slug: 'system-users', icon: '👨‍💼', route: '/super-admin/users', order: 30, parent: null }
   ],
   
   tenant: [

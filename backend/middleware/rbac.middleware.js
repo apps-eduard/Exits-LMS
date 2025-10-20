@@ -1,5 +1,8 @@
 const db = require('../config/database');
 
+// Protected system roles that automatically have all permissions
+const PROTECTED_ROLES = ['Super Admin', 'Support Staff', 'Developer'];
+
 const checkPermission = (requiredPermission) => {
   return async (req, res, next) => {
     try {
@@ -7,11 +10,11 @@ const checkPermission = (requiredPermission) => {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      console.log(`[RBAC] Checking permission: ${requiredPermission} for user: ${req.user.email}, scope: ${req.user.roleScope}`);
+      console.log(`[RBAC] Checking permission: ${requiredPermission} for user: ${req.user.email}, role: ${req.user.roleName}`);
 
-      // Super Admin with platform scope has all permissions
-      if (req.user.roleScope === 'platform') {
-        console.log('[RBAC] ✅ Platform admin - all permissions granted');
+      // Only protected system roles with platform scope get automatic all-permissions
+      if (PROTECTED_ROLES.includes(req.user.roleName) && req.user.roleScope === 'platform') {
+        console.log('[RBAC] ✅ Protected system role - all permissions granted');
         return next();
       }
 
@@ -53,11 +56,11 @@ const checkPermissionOr = (requiredPermissions) => {
       // Ensure requiredPermissions is an array
       const permissions = Array.isArray(requiredPermissions) ? requiredPermissions : [requiredPermissions];
 
-      console.log(`[RBAC] Checking permissions (OR): ${permissions.join(' OR ')} for user: ${req.user.email}, scope: ${req.user.roleScope}`);
+      console.log(`[RBAC] Checking permissions (OR): ${permissions.join(' OR ')} for user: ${req.user.email}, role: ${req.user.roleName}`);
 
-      // Super Admin with platform scope has all permissions
-      if (req.user.roleScope === 'platform') {
-        console.log('[RBAC] ✅ Platform admin - all permissions granted');
+      // Only protected system roles with platform scope get automatic all-permissions
+      if (PROTECTED_ROLES.includes(req.user.roleName) && req.user.roleScope === 'platform') {
+        console.log('[RBAC] ✅ Protected system role - all permissions granted');
         return next();
       }
 

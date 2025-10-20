@@ -39,6 +39,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/super-admin/audit-logs/audit-logs.component').then(m => m.AuditLogsComponent)
       },
       {
+        path: 'system-logs',
+        loadComponent: () => import('./pages/super-admin/system-logs/system-logs.component').then(m => m.SystemLogsComponent)
+      },
+      {
         path: 'tenants',
         loadComponent: () => import('./pages/super-admin/tenants/tenant-list.component').then(m => m.TenantListComponent)
       },
@@ -53,6 +57,76 @@ export const routes: Routes = [
       {
         path: 'tenants/:id/edit',
         loadComponent: () => import('./pages/super-admin/tenants/tenant-form.component').then(m => m.TenantFormComponent)
+      },
+      {
+        path: 'tenant-requests',
+        loadComponent: () => import('./pages/super-admin/tenants/tenant-requests.component').then(m => m.TenantRequestsComponent)
+      },
+      {
+        path: 'tenant-analytics',
+        loadComponent: () => import('./pages/super-admin/analytics/tenant-analytics.component').then(m => m.TenantAnalyticsComponent)
+      },
+      // Analytics Routes
+      {
+        path: 'analytics/overview',
+        loadComponent: () => import('./pages/super-admin/analytics/system-overview.component').then(m => m.SystemOverviewComponent)
+      },
+      {
+        path: 'analytics/users',
+        loadComponent: () => import('./pages/super-admin/analytics/user-activity.component').then(m => m.UserActivityComponent)
+      },
+      {
+        path: 'analytics/revenue',
+        loadComponent: () => import('./pages/super-admin/analytics/revenue-reports.component').then(m => m.RevenueReportsComponent)
+      },
+      // Subscriptions Routes
+      {
+        path: 'subscriptions/active',
+        loadComponent: () => import('./pages/super-admin/subscriptions/active-subscriptions.component').then(m => m.ActiveSubscriptionsComponent)
+      },
+      {
+        path: 'subscriptions/plans',
+        loadComponent: () => import('./pages/super-admin/subscriptions/plan-management.component').then(m => m.PlanManagementComponent)
+      },
+      {
+        path: 'subscriptions/billing',
+        loadComponent: () => import('./pages/super-admin/subscriptions/billing-history.component').then(m => m.BillingHistoryComponent)
+      },
+      // Notifications Routes
+      {
+        path: 'notifications/send',
+        loadComponent: () => import('./pages/super-admin/notifications/send-notification.component').then(m => m.SendNotificationComponent)
+      },
+      {
+        path: 'notifications/history',
+        loadComponent: () => import('./pages/super-admin/notifications/notification-history.component').then(m => m.NotificationHistoryComponent)
+      },
+      // Health Check Routes
+      {
+        path: 'health/status',
+        loadComponent: () => import('./pages/super-admin/health/system-status.component').then(m => m.SystemStatusComponent)
+      },
+      {
+        path: 'health/database',
+        loadComponent: () => import('./pages/super-admin/health/database-monitor.component').then(m => m.DatabaseMonitorComponent)
+      },
+      {
+        path: 'health/errors',
+        loadComponent: () => import('./pages/super-admin/health/error-logs.component').then(m => m.ErrorLogsComponent)
+      },
+      // Team Members Route
+      {
+        path: 'team',
+        loadComponent: () => import('./pages/super-admin/team/team-members.component').then(m => m.TeamMembersComponent)
+      },
+      // Settings Routes
+      {
+        path: 'settings/general',
+        loadComponent: () => import('./pages/super-admin/settings/general-settings.component').then(m => m.GeneralSettingsComponent)
+      },
+      {
+        path: 'settings/api',
+        loadComponent: () => import('./pages/super-admin/settings/api-settings.component').then(m => m.ApiSettingsComponent)
       },
       {
         path: 'users/activity',
@@ -71,8 +145,8 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/super-admin/users/user-management.component').then(m => m.UserManagementComponent)
       },
       {
-        path: 'settings/system-roles',
-        loadComponent: () => import('./pages/super-admin/settings/system-roles.component').then(m => m.SystemRolesComponent)
+        path: 'settings/roles',
+        loadComponent: () => import('./pages/super-admin/settings/permission-matrix.component').then(m => m.PermissionMatrixComponent)
       },
       {
         path: 'settings/menus',

@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Permission {
+  id?: string;
   name: string;
   resource: string;
   action: 'create' | 'read' | 'update' | 'delete';
@@ -208,5 +209,40 @@ export class RbacService {
    */
   hasAllPermissions(permissions: string[], userPermissions: Permission[]): boolean {
     return permissions.every(p => userPermissions.some(up => up.name === p));
+  }
+
+  /**
+   * Assign menus to a role
+   */
+  assignMenusToRole(roleId: string, menuIds: string[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/roles/${roleId}/menus`, { menuIds });
+  }
+
+  /**
+   * Get menus for a specific role
+   */
+  getRoleMenus(roleId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/roles/${roleId}/menus`);
+  }
+
+  /**
+   * Get all available menus for assignment
+   */
+  getAvailableMenus(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/menus/available`);
+  }
+
+  /**
+   * Get user's accessible menus
+   */
+  getUserMenus(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/menus/user-menus`);
+  }
+
+  /**
+   * Remove menu from role
+   */
+  removeMenuFromRole(roleId: string, menuId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/roles/${roleId}/menus/${menuId}`);
   }
 }

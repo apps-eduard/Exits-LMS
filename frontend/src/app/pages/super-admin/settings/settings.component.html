@@ -59,6 +59,13 @@
       [ngClass]="activeTab() === 'menus' ? 'text-purple-400 border-purple-400' : 'text-gray-400 border-transparent hover:text-gray-300'">
       📋 Menus
     </button>
+    <button
+      (click)="setActiveTab('roles')"
+      [class.active]="activeTab() === 'roles'"
+      class="px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap"
+      [ngClass]="activeTab() === 'roles' ? 'text-purple-400 border-purple-400' : 'text-gray-400 border-transparent hover:text-gray-300'">
+      � Roles & Menus
+    </button>
   </div>
 
   <!-- Profile Tab -->
@@ -344,8 +351,13 @@
     <app-menu-management></app-menu-management>
   </div>
 
+  <!-- Roles & Permissions Tab -->
+  <div *ngIf="activeTab() === 'roles'">
+    <app-permission-matrix></app-permission-matrix>
+  </div>
+
   <!-- Save Button -->
-  <div *ngIf="activeTab() !== 'menus' && activeTab() !== 'profile'" class="flex items-center justify-between mt-6 bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+  <div *ngIf="activeTab() !== 'menus' && activeTab() !== 'roles' && activeTab() !== 'profile'" class="flex items-center justify-between mt-6 bg-gray-800/50 p-4 rounded-lg border border-gray-700">
     <div>
       <p class="text-white font-medium text-sm">Save Changes</p>
       <p class="text-xs text-gray-400">Click save to apply these settings platform-wide</p>

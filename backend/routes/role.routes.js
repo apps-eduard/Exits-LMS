@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const roleController = require('../controllers/role.controller');
+const roleMenusController = require('../controllers/role-menus.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const rbacMiddleware = require('../middleware/rbac.middleware');
 
@@ -38,6 +39,23 @@ router.delete('/:id',
 router.post('/:id/permissions',
   rbacMiddleware.checkPermission('manage_platform_settings'),
   roleController.assignPermissionsToRole
+);
+
+// Assign menus to role (requires manage_platform_settings permission)
+router.post('/:id/menus',
+  rbacMiddleware.checkPermission('manage_platform_settings'),
+  roleMenusController.assignMenusToRole
+);
+
+// Get menus for a role
+router.get('/:id/menus',
+  roleMenusController.getRoleMenus
+);
+
+// Remove menu from role (requires manage_platform_settings permission)
+router.delete('/:roleId/menus/:menuId',
+  rbacMiddleware.checkPermission('manage_platform_settings'),
+  roleMenusController.removeMenuFromRole
 );
 
 module.exports = router;

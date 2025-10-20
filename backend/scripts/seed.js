@@ -103,7 +103,32 @@ const seedData = async () => {
 
     console.log('✅ Permissions created');
 
-    // Assign permissions to Super Admin (all permissions)
+    // ============================================
+    // ROLE-PERMISSION ASSIGNMENT LOGIC
+    // ============================================
+    
+    // Helper function to assign permissions by name
+    const assignPermissions = async (roleId, permissionNames) => {
+      const placeholders = permissionNames.map((_, i) => `$${i + 1}`).join(',');
+      const perms = await db.query(
+        `SELECT id FROM permissions WHERE name IN (${placeholders})`,
+        permissionNames
+      );
+      
+      for (const perm of perms.rows) {
+        await db.query(
+          `INSERT INTO role_permissions (role_id, permission_id)
+           VALUES ($1, $2)
+           ON CONFLICT DO NOTHING`,
+          [roleId, perm.id]
+        );
+      }
+      return perms.rows.length;
+    };
+
+    // ============================================
+    // SUPER ADMIN - Platform Scope (All Permissions)
+    // ============================================
     if (superAdminRole.rows.length > 0) {
       const allPermissions = await db.query('SELECT id FROM permissions');
       for (const perm of allPermissions.rows) {
@@ -114,92 +139,177 @@ const seedData = async () => {
           [superAdminRole.rows[0].id, perm.id]
         );
       }
+      console.log(`  ✓ Super Admin: ${allPermissions.rows.length} permissions (FULL ACCESS)`);
     }
 
-    // Assign permissions to Support Staff (limited permissions)
+    // ============================================
+    // SUPPORT STAFF - Platform Scope (Read-Only + User Management)
+    // ============================================
     if (supportStaffRole.rows.length > 0) {
-      const supportPerms = await db.query(`
-        SELECT id FROM permissions 
-        WHERE name IN ('view_audit_logs', 'manage_users', 'view_customers', 'view_loans', 'view_payments')
-      `);
-      for (const perm of supportPerms.rows) {
-        await db.query(
-          `INSERT INTO role_permissions (role_id, permission_id)
-           VALUES ($1, $2)
-           ON CONFLICT DO NOTHING`,
-          [supportStaffRole.rows[0].id, perm.id]
-        );
-      }
+      const supportPerms = [
+        // Tenant Management - View only
+        'view_tenants',
+        
+        // User Management - View + Edit (can manage support tickets, user issues)
+        'view_users',
+        'edit_users',
+        
+        // Audit & Compliance - View only
+        'view_audit_logs',
+        
+        // Platform Settings - View only
+        'view_platform_settings',
+        
+        // Menu Management - View only
+        'view_menus',
+        
+        // Tenant Operations - View only (for support purposes)
+        'view_customers',
+        'view_loans',
+        'view_payments',
+        'view_reports'
+      ];
+      
+      const count = await assignPermissions(supportStaffRole.rows[0].id, supportPerms);
+      console.log(`  ✓ Support Staff: ${count} permissions (VIEW + USER SUPPORT)`);
     }
 
-    // Assign permissions to Developer (technical permissions)
+    // ============================================
+    // DEVELOPER - Platform Scope (Technical Access)
+    // ============================================
     if (developerRole.rows.length > 0) {
-      const devPerms = await db.query(`
-        SELECT id FROM permissions 
-        WHERE name IN ('view_audit_logs', 'manage_platform_settings', 'manage_users', 'view_customers', 'view_loans')
-      `);
-      for (const perm of devPerms.rows) {
-        await db.query(
-          `INSERT INTO role_permissions (role_id, permission_id)
-           VALUES ($1, $2)
-           ON CONFLICT DO NOTHING`,
-          [developerRole.rows[0].id, perm.id]
-        );
-      }
+      const devPerms = [
+        // Tenant Management - View only
+        'view_tenants',
+        
+        // User Management - Full (for technical support)
+        'manage_users',
+        'view_users',
+        'edit_users',
+        
+        // Platform Settings - Full (needs to configure system)
+        'manage_platform_settings',
+        'view_platform_settings',
+        'edit_platform_settings',
+        'export_settings',
+        
+        // Menu Management - Full (for UI configuration)
+        'manage_menus',
+        'view_menus',
+        'edit_menus',
+        
+        // Audit & Compliance - View only
+        'view_audit_logs',
+        
+        // Tenant Operations - View only (for debugging)
+        'view_customers',
+        'view_loans',
+        'view_payments',
+        'view_bnpl_orders',
+        'view_reports'
+      ];
+      
+      const count = await assignPermissions(developerRole.rows[0].id, devPerms);
+      console.log(`  ✓ Developer: ${count} permissions (TECHNICAL + CONFIG)`);
     }
 
-    // Assign permissions to Tenant Admin (all tenant permissions)
+    // ============================================
+    // TENANT ADMIN - Tenant Scope (All Tenant Operations)
+    // ============================================
     if (tenantAdminRole.rows.length > 0) {
-      const tenantPermissions = await db.query(`
-        SELECT id FROM permissions 
-        WHERE resource != 'tenants' AND resource != 'settings'
-      `);
-      for (const perm of tenantPermissions.rows) {
-        await db.query(
-          `INSERT INTO role_permissions (role_id, permission_id)
-           VALUES ($1, $2)
-           ON CONFLICT DO NOTHING`,
-          [tenantAdminRole.rows[0].id, perm.id]
-        );
-      }
+      const tenantAdminPerms = [
+        // Users (within tenant)
+        'manage_users',
+        'view_users',
+        'edit_users',
+        
+        // Customers - Full
+        'manage_customers',
+        'view_customers',
+        
+        // Loans - Full
+        'manage_loans',
+        'approve_loans',
+        'view_loans',
+        'manage_loan_products',
+        
+        // Payments - Full
+        'process_payments',
+        'view_payments',
+        
+        // BNPL - Full
+        'manage_bnpl_merchants',
+        'manage_bnpl_orders',
+        'view_bnpl_orders',
+        
+        // Reports - Full
+        'view_reports',
+        
+        // Audit (tenant scope only)
+        'view_audit_logs'
+      ];
+      
+      const count = await assignPermissions(tenantAdminRole.rows[0].id, tenantAdminPerms);
+      console.log(`  ✓ Tenant Admin: ${count} permissions (FULL TENANT ACCESS)`);
     }
 
-    // Assign permissions to Loan Officer
+    // ============================================
+    // LOAN OFFICER - Tenant Scope (Loan Operations)
+    // ============================================
     if (loanOfficerRole.rows.length > 0) {
-      const loanOfficerPerms = await db.query(`
-        SELECT id FROM permissions 
-        WHERE name IN ('manage_customers', 'view_customers', 'manage_loans', 'view_loans', 
-                       'view_payments', 'manage_loan_products', 'manage_bnpl_orders', 
-                       'view_bnpl_orders', 'view_reports')
-      `);
-      for (const perm of loanOfficerPerms.rows) {
-        await db.query(
-          `INSERT INTO role_permissions (role_id, permission_id)
-           VALUES ($1, $2)
-           ON CONFLICT DO NOTHING`,
-          [loanOfficerRole.rows[0].id, perm.id]
-        );
-      }
+      const loanOfficerPerms = [
+        // Customers - Full (need to manage customer info for loans)
+        'manage_customers',
+        'view_customers',
+        
+        // Loans - Full (primary responsibility)
+        'manage_loans',
+        'approve_loans',
+        'view_loans',
+        'manage_loan_products',
+        
+        // Payments - View only (can see payment status)
+        'view_payments',
+        
+        // BNPL - Manage (can process BNPL applications)
+        'manage_bnpl_orders',
+        'view_bnpl_orders',
+        
+        // Reports - View (for loan analytics)
+        'view_reports'
+      ];
+      
+      const count = await assignPermissions(loanOfficerRole.rows[0].id, loanOfficerPerms);
+      console.log(`  ✓ Loan Officer: ${count} permissions (LOAN OPERATIONS)`);
     }
 
-    // Assign permissions to Cashier
+    // ============================================
+    // CASHIER - Tenant Scope (Payment Processing)
+    // ============================================
     if (cashierRole.rows.length > 0) {
-      const cashierPerms = await db.query(`
-        SELECT id FROM permissions 
-        WHERE name IN ('view_customers', 'view_loans', 'process_payments', 
-                       'view_payments', 'view_bnpl_orders')
-      `);
-      for (const perm of cashierPerms.rows) {
-        await db.query(
-          `INSERT INTO role_permissions (role_id, permission_id)
-           VALUES ($1, $2)
-           ON CONFLICT DO NOTHING`,
-          [cashierRole.rows[0].id, perm.id]
-        );
-      }
+      const cashierPerms = [
+        // Customers - View only (need to verify customer info)
+        'view_customers',
+        
+        // Loans - View only (need to see loan details for payments)
+        'view_loans',
+        
+        // Payments - Full (primary responsibility)
+        'process_payments',
+        'view_payments',
+        
+        // BNPL - View only (can see BNPL payment details)
+        'view_bnpl_orders',
+        
+        // Reports - View (for payment reconciliation)
+        'view_reports'
+      ];
+      
+      const count = await assignPermissions(cashierRole.rows[0].id, cashierPerms);
+      console.log(`  ✓ Cashier: ${count} permissions (PAYMENT PROCESSING)`);
     }
 
-    console.log('✅ Role permissions assigned');
+    console.log('✅ Role permissions assigned with proper hierarchy');
 
     // Create Super Admin User
     const hashedPassword = await bcrypt.hash('admin123', 10);

@@ -2,9 +2,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../config/database');
 
-const generateToken = (userId, tenantId, roleId, roleScope) => {
+const generateToken = (userId, tenantId, roleId, roleScope, roleName) => {
   return jwt.sign(
-    { userId, tenantId, roleId, roleScope },
+    { userId, tenantId, roleId, roleScope, roleName },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN }
   );
@@ -71,7 +71,7 @@ const login = async (req, res) => {
     );
 
     // Generate tokens
-    const token = generateToken(user.id, user.tenant_id, user.role_id, user.role_scope);
+    const token = generateToken(user.id, user.tenant_id, user.role_id, user.role_scope, user.role_name);
     const refreshToken = generateRefreshToken(user.id);
 
     // Get enabled modules for tenant users
@@ -116,7 +116,7 @@ const refreshTokenHandler = async (req, res) => {
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
     const userResult = await db.query(
-      `SELECT u.*, r.scope as role_scope
+      `SELECT u.*, r.scope as role_scope, r.name as role_name
        FROM users u
        LEFT JOIN roles r ON u.role_id = r.id
        WHERE u.id = $1 AND u.is_active = true`,
@@ -128,7 +128,7 @@ const refreshTokenHandler = async (req, res) => {
     }
 
     const user = userResult.rows[0];
-    const newToken = generateToken(user.id, user.tenant_id, user.role_id, user.role_scope);
+    const newToken = generateToken(user.id, user.tenant_id, user.role_id, user.role_scope, user.role_name);
 
     res.json({
       success: true,
