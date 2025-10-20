@@ -55,10 +55,6 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/super-admin/tenants/tenant-form.component').then(m => m.TenantFormComponent)
       },
       {
-        path: 'users',
-        loadComponent: () => import('./pages/super-admin/users/user-management.component').then(m => m.UserManagementComponent)
-      },
-      {
         path: 'users/activity',
         loadComponent: () => import('./pages/super-admin/users/activity-logs/activity-logs.component').then(m => m.ActivityLogsComponent)
       },
@@ -71,13 +67,17 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/super-admin/users/user-form.component').then(m => m.UserFormComponent)
       },
       {
-        path: 'settings',
-        loadComponent: () => import('./pages/super-admin/settings/settings.component').then(m => m.SettingsComponent)
+        path: 'users',
+        loadComponent: () => import('./pages/super-admin/users/user-management.component').then(m => m.UserManagementComponent)
       },
       {
         path: 'settings/system-roles',
         loadComponent: () => import('./pages/super-admin/settings/system-roles.component').then(m => m.SystemRolesComponent)
-      }
+      },
+      {
+        path: 'settings',
+        loadComponent: () => import('./pages/super-admin/settings/settings.component').then(m => m.SettingsComponent)
+      },
     ]
   },
   {
