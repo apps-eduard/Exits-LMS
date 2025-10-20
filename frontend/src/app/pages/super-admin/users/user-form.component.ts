@@ -38,10 +38,9 @@ export class UserFormComponent implements OnInit {
   ];
   
   roles = [
-    { value: 'super-admin', label: 'Super Admin' },
-    { value: 'tenant-admin', label: 'Tenant Admin' },
-    { value: 'loan-officer', label: 'Loan Officer' },
-    { value: 'cashier', label: 'Cashier' }
+    { value: 'Super Admin', label: 'Super Admin' },
+    { value: 'Support Staff', label: 'Support Staff' },
+    { value: 'Developer', label: 'Developer' }
   ];
 
   constructor(
@@ -57,7 +56,7 @@ export class UserFormComponent implements OnInit {
       phone: [''],
       password: ['', Validators.required],
       confirm_password: ['', Validators.required],
-      roleName: ['tenant-admin', Validators.required],
+      roleName: ['Support Staff', Validators.required],
       is_active: [true],
       // Philippine Address fields
       street_address: [''],

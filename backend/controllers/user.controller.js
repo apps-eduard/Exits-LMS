@@ -18,7 +18,7 @@ const getAllUsers = async (req, res) => {
       LEFT JOIN roles r ON u.role_id = r.id
       LEFT JOIN tenants t ON u.tenant_id = t.id
       LEFT JOIN addresses addr ON u.address_id = addr.id AND addr.is_primary = true
-      WHERE 1=1
+      WHERE u.tenant_id IS NULL
     `;
 
     const params = [];
@@ -43,7 +43,7 @@ const getAllUsers = async (req, res) => {
 
     const result = await db.query(query, params);
 
-    logger.success('Fetched all users', {
+    logger.success('Fetched all platform users', {
       count: result.rows.length,
       filters: { search: !!search, role: !!role, status },
     });

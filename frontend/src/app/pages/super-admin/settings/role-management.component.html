@@ -1,0 +1,333 @@
+<div class="p-4 lg:p-6">
+  <!-- Header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-white mb-2">Role Management Settings</h1>
+      <p class="text-sm text-gray-400">Create and configure roles, assign permissions, and manage menu access</p>
+    </div>
+    <button (click)="createNewRole()" 
+            class="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-semibold rounded-lg hover:shadow-lg transition">
+      ➕ Create Role
+    </button>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="flex gap-2 mb-6 border-b border-gray-700">
+    <button (click)="activeTab.set('roles')"
+            [class.border-b-2]="activeTab() === 'roles'"
+            [class.border-blue-500]="activeTab() === 'roles'"
+            [class.text-blue-400]="activeTab() === 'roles'"
+            class="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition">
+      👥 All Roles ({{ roles().length }})
+    </button>
+    <button (click)="activeTab.set('menus')" 
+            [disabled]="!selectedRole()"
+            [class.border-b-2]="activeTab() === 'menus'"
+            [class.border-blue-500]="activeTab() === 'menus'"
+            [class.text-blue-400]="activeTab() === 'menus'"
+            class="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
+      🔐 Menu Access
+    </button>
+    <button (click)="activeTab.set('permissions')"
+            [disabled]="!selectedRole()"
+            [class.border-b-2]="activeTab() === 'permissions'"
+            [class.border-blue-500]="activeTab() === 'permissions'"
+            [class.text-blue-400]="activeTab() === 'permissions'"
+            class="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
+      ⚙️ Permissions
+    </button>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="space-y-4">
+    <!-- TAB 1: All Roles -->
+    <div *ngIf="activeTab() === 'roles'" class="space-y-4">
+      <!-- Create/Edit Form -->
+      <div *ngIf="showCreateForm()" class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+        <h2 class="text-lg font-bold text-white mb-4">{{ editMode() ? '✏️ Edit Role' : '➕ Create New Role' }}</h2>
+        
+        <form [formGroup]="roleForm" class="space-y-4">
+          <!-- Role Name -->
+          <div>
+            <label class="block text-xs font-medium text-gray-300 mb-1">Role Name *</label>
+            <input type="text" formControlName="name" placeholder="e.g., Support Manager"
+                   class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+                   [class.border-red-600]="isFormInvalid('name')" />
+            <p *ngIf="isFormInvalid('name')" class="mt-1 text-xs text-red-400">{{ getFieldError('name') }}</p>
+          </div>
+
+          <!-- Scope -->
+          <div>
+            <label for="scope" class="block text-xs font-medium text-gray-300 mb-1">Scope *</label>
+            <select id="scope" formControlName="scope" 
+                    class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white focus:border-blue-500 focus:outline-none">
+              <option value="platform">Platform (System-wide)</option>
+              <option value="tenant">Tenant (Organization-specific)</option>
+            </select>
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label class="block text-xs font-medium text-gray-300 mb-1">Description *</label>
+            <textarea formControlName="description" placeholder="Describe the purpose of this role..."
+                      rows="3"
+                      class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+                      [class.border-red-600]="isFormInvalid('description')"></textarea>
+            <p *ngIf="isFormInvalid('description')" class="mt-1 text-xs text-red-400">{{ getFieldError('description') }}</p>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex gap-2 justify-end pt-4">
+            <button type="button" (click)="cancelForm()"
+                    class="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium rounded transition">
+              Cancel
+            </button>
+            <button type="button" (click)="saveRole()" [disabled]="saving()"
+                    class="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs font-semibold rounded hover:shadow-lg transition disabled:opacity-50">
+              {{ saving() ? '⏳ Saving...' : (editMode() ? '💾 Update' : '✨ Create') }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Roles List -->
+      <div class="space-y-2">
+        <div *ngIf="loading()" class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 flex items-center justify-center">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+
+        <div *ngFor="let role of roles()" 
+             class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:bg-gray-800/70 transition">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <h3 class="text-sm font-bold text-white">{{ role.name }}</h3>
+              <p class="text-xs text-gray-400 mt-1">{{ role.description }}</p>
+              <div class="flex gap-2 mt-2">
+                <span [class]="role.scope === 'platform' ? 'bg-purple-900/30 text-purple-300' : 'bg-green-900/30 text-green-300'"
+                      class="text-xs px-2 py-1 rounded">
+                  {{ role.scope | titlecase }}
+                </span>
+                <span class="text-xs px-2 py-1 rounded bg-gray-700/30 text-gray-300">
+                  📦 {{ getVisibilityCount(role) }} menu items
+                </span>
+                <span class="text-xs px-2 py-1 rounded bg-gray-700/30 text-gray-300">
+                  🔑 {{ getPermissionCount(role) }} permissions
+                </span>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button (click)="editRole(role)"
+                      class="px-2 py-1 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 text-xs font-medium rounded transition">
+                ✏️ Edit
+              </button>
+              <button (click)="selectRoleForMenuConfig(role)"
+                      class="px-2 py-1 bg-green-600/20 hover:bg-green-600/40 text-green-400 text-xs font-medium rounded transition">
+                🔐 Menu
+              </button>
+              <button (click)="deleteRole(role)"
+                      class="px-2 py-1 bg-red-600/20 hover:bg-red-600/40 text-red-400 text-xs font-medium rounded transition">
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!loading() && roles().length === 0" class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 text-center">
+          <p class="text-sm text-gray-400">No roles found. Create one to get started!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Menu Access Configuration -->
+    <div *ngIf="activeTab() === 'menus' && selectedRole()" class="space-y-4">
+      <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+        <h2 class="text-lg font-bold text-white mb-4">
+          🔐 Configure Menu Access for {{ selectedRole()!.name }}
+        </h2>
+        <p class="text-xs text-gray-400 mb-4">Select which menu items this role can see and access:</p>
+
+        <!-- Menu Items by Section -->
+        <div class="space-y-4">
+          <ng-container *ngFor="let section of getSectionOrder()">
+            <ng-container *ngIf="getMenusBySection()[section]">
+              <div class="bg-gray-700/30 rounded-lg p-3">
+                <!-- Section Header -->
+                <h3 class="text-sm font-bold text-blue-400 mb-2">{{ section }}</h3>
+
+                <!-- Menu Items -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <ng-container *ngFor="let menuItem of getMenusBySection()[section]">
+                    <label class="flex items-center gap-2 p-2 rounded hover:bg-gray-700/50 cursor-pointer transition">
+                      <input type="checkbox" 
+                             [checked]="isMenuVisible(menuItem.id)"
+                             (change)="toggleMenuVisibility(menuItem.id)"
+                             class="w-4 h-4 rounded border-gray-600 bg-gray-900 accent-blue-600">
+                      <div class="flex-1 min-w-0">
+                        <span class="text-xs text-white">{{ menuItem.label }}</span>
+                        <span class="text-xs text-gray-500 block">{{ menuItem.id }}</span>
+                      </div>
+                      <span *ngIf="isMenuVisible(menuItem.id)" class="text-green-400">✓</span>
+                    </label>
+                  </ng-container>
+                </div>
+              </div>
+            </ng-container>
+          </ng-container>
+        </div>
+
+        <!-- Summary -->
+        <div class="mt-4 p-3 bg-blue-900/20 border border-blue-700/50 rounded-lg">
+          <p class="text-xs text-blue-300">
+            ✓ This role can access <strong>{{ getVisibilityCount(selectedRole()!) }}</strong> menu items
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Permissions -->
+    <div *ngIf="activeTab() === 'permissions' && selectedRole()" class="space-y-4">
+      <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+        <h2 class="text-lg font-bold text-white mb-4">
+          ⚙️ Configure Permissions for {{ selectedRole()!.name }}
+        </h2>
+        <p class="text-xs text-gray-400 mb-4">Select which permissions this role has:</p>
+
+        <!-- Permission Groups -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Tenant Management -->
+          <div class="bg-gray-700/30 rounded-lg p-3">
+            <h4 class="text-xs font-bold text-yellow-400 mb-2">🏢 Tenant Management</h4>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                <input type="checkbox" [checked]="hasPermission('manage_tenants')" 
+                       (change)="togglePermission('manage_tenants')" class="w-3 h-3">
+                Manage Tenants
+              </label>
+              <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                <input type="checkbox" [checked]="hasPermission('view_tenants')"
+                       (change)="togglePermission('view_tenants')" class="w-3 h-3">
+                View Tenants
+              </label>
+            </div>
+          </div>
+
+          <!-- User Management -->
+          <div class="bg-gray-700/30 rounded-lg p-3">
+            <h4 class="text-xs font-bold text-yellow-400 mb-2">👥 User Management</h4>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                <input type="checkbox" [checked]="hasPermission('manage_users')"
+                       (change)="togglePermission('manage_users')" class="w-3 h-3">
+                Manage Users
+              </label>
+              <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                <input type="checkbox" [checked]="hasPermission('view_users')"
+                       (change)="togglePermission('view_users')" class="w-3 h-3">
+                View Users
+              </label>
+            </div>
+          </div>
+
+          <!-- Audit & Compliance -->
+          <div class="bg-gray-700/30 rounded-lg p-3">
+            <h4 class="text-xs font-bold text-yellow-400 mb-2">📋 Audit & Compliance</h4>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                <input type="checkbox" [checked]="hasPermission('view_audit_logs')"
+                       (change)="togglePermission('view_audit_logs')" class="w-3 h-3">
+                View Audit Logs
+              </label>
+            </div>
+          </div>
+
+          <!-- Platform Settings -->
+          <div class="bg-gray-700/30 rounded-lg p-3">
+            <h4 class="text-xs font-bold text-yellow-400 mb-2">⚙️ Platform Settings</h4>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                <input type="checkbox" [checked]="hasPermission('manage_platform_settings')"
+                       (change)="togglePermission('manage_platform_settings')" class="w-3 h-3">
+                Manage Settings
+              </label>
+            </div>
+          </div>
+
+          <!-- Customer Management -->
+          <div class="bg-gray-700/30 rounded-lg p-3">
+            <h4 class="text-xs font-bold text-yellow-400 mb-2">👤 Customers</h4>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                <input type="checkbox" [checked]="hasPermission('manage_customers')"
+                       (change)="togglePermission('manage_customers')" class="w-3 h-3">
+                Manage Customers
+              </label>
+              <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                <input type="checkbox" [checked]="hasPermission('view_customers')"
+                       (change)="togglePermission('view_customers')" class="w-3 h-3">
+                View Customers
+              </label>
+            </div>
+          </div>
+
+          <!-- Loan Management -->
+          <div class="bg-gray-700/30 rounded-lg p-3">
+            <h4 class="text-xs font-bold text-yellow-400 mb-2">💰 Loans</h4>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                <input type="checkbox" [checked]="hasPermission('manage_loans')"
+                       (change)="togglePermission('manage_loans')" class="w-3 h-3">
+                Manage Loans
+              </label>
+              <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                <input type="checkbox" [checked]="hasPermission('approve_loans')"
+                       (change)="togglePermission('approve_loans')" class="w-3 h-3">
+                Approve Loans
+              </label>
+              <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                <input type="checkbox" [checked]="hasPermission('view_loans')"
+                       (change)="togglePermission('view_loans')" class="w-3 h-3">
+                View Loans
+              </label>
+            </div>
+          </div>
+
+          <!-- Payment Management -->
+          <div class="bg-gray-700/30 rounded-lg p-3">
+            <h4 class="text-xs font-bold text-yellow-400 mb-2">💳 Payments</h4>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                <input type="checkbox" [checked]="hasPermission('process_payments')"
+                       (change)="togglePermission('process_payments')" class="w-3 h-3">
+                Process Payments
+              </label>
+              <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                <input type="checkbox" [checked]="hasPermission('view_payments')"
+                       (change)="togglePermission('view_payments')" class="w-3 h-3">
+                View Payments
+              </label>
+            </div>
+          </div>
+
+          <!-- Reports -->
+          <div class="bg-gray-700/30 rounded-lg p-3">
+            <h4 class="text-xs font-bold text-yellow-400 mb-2">📊 Reports</h4>
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                <input type="checkbox" [checked]="hasPermission('view_reports')"
+                       (change)="togglePermission('view_reports')" class="w-3 h-3">
+                View Reports
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="mt-4 p-3 bg-blue-900/20 border border-blue-700/50 rounded-lg">
+          <p class="text-xs text-blue-300">
+            ✓ This role has <strong>{{ getPermissionCount(selectedRole()!) }}</strong> permissions assigned
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

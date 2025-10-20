@@ -27,10 +27,9 @@ export class UserManagementComponent implements OnInit {
 
   readonly roles = [
     { value: 'all', label: 'All Roles' },
-    { value: 'super-admin', label: 'Super Admin' },
-    { value: 'tenant-admin', label: 'Tenant Admin' },
-    { value: 'loan-officer', label: 'Loan Officer' },
-    { value: 'cashier', label: 'Cashier' }
+    { value: 'Super Admin', label: 'Super Admin' },
+    { value: 'Support Staff', label: 'Support Staff' },
+    { value: 'Developer', label: 'Developer' }
   ];
 
   readonly statuses = [
@@ -138,20 +137,18 @@ export class UserManagementComponent implements OnInit {
 
   getRoleColor(role: string): string {
     const colors: { [key: string]: string } = {
-      'super-admin': 'bg-red-900/30 text-red-300',
-      'tenant-admin': 'bg-purple-900/30 text-purple-300',
-      'loan-officer': 'bg-blue-900/30 text-blue-300',
-      'cashier': 'bg-green-900/30 text-green-300'
+      'Super Admin': 'bg-red-900/30 text-red-300',
+      'Support Staff': 'bg-blue-900/30 text-blue-300',
+      'Developer': 'bg-purple-900/30 text-purple-300'
     };
     return colors[role] || 'bg-gray-700/30 text-gray-300';
   }
 
   getRoleIcon(role: string): string {
     const icons: { [key: string]: string } = {
-      'super-admin': '👑',
-      'tenant-admin': '🏢',
-      'loan-officer': '👔',
-      'cashier': '🛍️'
+      'Super Admin': '👑',
+      'Support Staff': '�',
+      'Developer': '👨‍�'
     };
     return icons[role] || '👤';
   }

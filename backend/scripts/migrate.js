@@ -13,13 +13,57 @@ const createTables = async () => {
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         name VARCHAR(255) NOT NULL,
         subdomain VARCHAR(100) UNIQUE,
+        contact_first_name VARCHAR(100),
+        contact_last_name VARCHAR(100),
         contact_email VARCHAR(255),
         contact_phone VARCHAR(50),
+        address_id UUID,
         status VARCHAR(50) DEFAULT 'active',
         trial_ends_at TIMESTAMP,
         subscription_plan VARCHAR(100),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Add missing columns to tenants if they don't exist
+    try {
+      await db.query(`ALTER TABLE tenants ADD COLUMN contact_first_name VARCHAR(100);`);
+    } catch (e) {
+      // Column already exists, ignore
+    }
+
+    try {
+      await db.query(`ALTER TABLE tenants ADD COLUMN contact_last_name VARCHAR(100);`);
+    } catch (e) {
+      // Column already exists, ignore
+    }
+
+    try {
+      await db.query(`ALTER TABLE tenants ADD COLUMN address_id UUID;`);
+    } catch (e) {
+      // Column already exists, ignore
+    }
+
+    // Addresses table
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS addresses (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
+        entity_type VARCHAR(50) NOT NULL,
+        entity_id UUID NOT NULL,
+        street_address VARCHAR(255) NOT NULL,
+        barangay VARCHAR(100),
+        city VARCHAR(100),
+        province VARCHAR(100),
+        region VARCHAR(100),
+        postal_code VARCHAR(20),
+        country VARCHAR(100) DEFAULT 'Philippines',
+        is_primary BOOLEAN DEFAULT false,
+        address_type VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(tenant_id, entity_type, entity_id, is_primary)
       );
     `);
 
@@ -66,6 +110,7 @@ const createTables = async () => {
         first_name VARCHAR(100),
         last_name VARCHAR(100),
         phone VARCHAR(50),
+        address_id UUID,
         is_active BOOLEAN DEFAULT true,
         last_login TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -73,6 +118,13 @@ const createTables = async () => {
         UNIQUE(email, tenant_id)
       );
     `);
+
+    // Add address_id column to users if it doesn't exist
+    try {
+      await db.query(`ALTER TABLE users ADD COLUMN address_id UUID;`);
+    } catch (e) {
+      // Column already exists, ignore
+    }
 
     // Tenant Features table
     await db.query(`
@@ -96,7 +148,7 @@ const createTables = async () => {
         last_name VARCHAR(100) NOT NULL,
         email VARCHAR(255),
         phone VARCHAR(50),
-        address TEXT,
+        address_id UUID,
         id_number VARCHAR(100),
         status VARCHAR(50) DEFAULT 'active',
         created_by UUID REFERENCES users(id),
@@ -104,6 +156,13 @@ const createTables = async () => {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    // Add address_id column to customers if it doesn't exist
+    try {
+      await db.query(`ALTER TABLE customers ADD COLUMN address_id UUID;`);
+    } catch (e) {
+      // Column already exists, ignore
+    }
 
     // Loan Products table
     await db.query(`
@@ -252,6 +311,8 @@ const createTables = async () => {
       CREATE INDEX IF NOT EXISTS idx_bnpl_orders_tenant_id ON bnpl_orders(tenant_id);
       CREATE INDEX IF NOT EXISTS idx_bnpl_payments_tenant_id ON bnpl_payments(tenant_id);
       CREATE INDEX IF NOT EXISTS idx_audit_logs_tenant_id ON audit_logs(tenant_id);
+      CREATE INDEX IF NOT EXISTS idx_addresses_tenant_id ON addresses(tenant_id);
+      CREATE INDEX IF NOT EXISTS idx_addresses_entity ON addresses(entity_type, entity_id);
     `);
 
     console.log('✅ All tables created successfully');

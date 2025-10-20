@@ -15,6 +15,7 @@ const tenantRoutes = require('./routes/tenant.routes');
 const customerRoutes = require('./routes/customer.routes');
 const userRoutes = require('./routes/user.routes');
 const settingsRoutes = require('./routes/settings.routes');
+const roleRoutes = require('./routes/role.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -59,6 +60,12 @@ app.use('/api/tenants', tenantRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/roles', roleRoutes);
+
+// Direct permissions endpoint
+const authMiddleware = require('./middleware/auth.middleware');
+const roleController = require('./controllers/role.controller');
+app.get('/api/permissions', authMiddleware, roleController.getAllPermissions);
 
 // 404 handler
 app.use((req, res) => {

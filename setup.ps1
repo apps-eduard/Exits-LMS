@@ -1,18 +1,26 @@
 # Exits LMS - Automated Setup Script
 # This script will set up both backend and frontend
+# Updated: October 2025
+# Changes:
+#   - Added addresses table for tenant and customer address management
+#   - Added contact_first_name and contact_last_name to tenants
+#   - Added address_id foreign keys to tenants, users, and customers
+#   - Implemented proper environment configuration loading
 
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host "  Exits LMS - Automated Setup" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Setup Version: 2.0 (Database Improvements Edition)" -ForegroundColor Cyan
 Write-Host ""
 
 # Check if Node.js is installed
 Write-Host "Checking prerequisites..." -ForegroundColor Yellow
 try {
     $nodeVersion = node --version
-    Write-Host "✓ Node.js is installed: $nodeVersion" -ForegroundColor Green
+    Write-Host "Node.js is installed: $nodeVersion" -ForegroundColor Green
 } catch {
-    Write-Host "✗ Node.js is not installed!" -ForegroundColor Red
+    Write-Host "Node.js is not installed!" -ForegroundColor Red
     Write-Host "Please install Node.js from https://nodejs.org/" -ForegroundColor Yellow
     exit 1
 }
@@ -23,7 +31,7 @@ $pgInstalled = $false
 try {
     $pgVersion = psql --version 2>$null
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "✓ PostgreSQL is installed: $pgVersion" -ForegroundColor Green
+        Write-Host "PostgreSQL is installed: $pgVersion" -ForegroundColor Green
         $pgInstalled = $true
     }
 } catch {
@@ -43,7 +51,7 @@ if (-not $pgInstalled) {
         if (Test-Path $path) {
             $psqlPath = Get-ChildItem -Path $path -Filter "psql.exe" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
             if ($psqlPath) {
-                Write-Host "✓ PostgreSQL found at: $($psqlPath.DirectoryName)" -ForegroundColor Green
+                Write-Host "PostgreSQL found at: $($psqlPath.DirectoryName)" -ForegroundColor Green
                 $pgInstalled = $true
                 # Add to PATH for this session
                 $env:Path += ";$($psqlPath.DirectoryName)"
@@ -54,7 +62,7 @@ if (-not $pgInstalled) {
 }
 
 if (-not $pgInstalled) {
-    Write-Host "⚠ PostgreSQL not found in PATH" -ForegroundColor Yellow
+    Write-Host "PostgreSQL not found in PATH" -ForegroundColor Yellow
     Write-Host "PostgreSQL may be installed but not accessible from this terminal." -ForegroundColor Cyan
     Write-Host ""
     $response = Read-Host "Do you have PostgreSQL installed? (Y/n)"
@@ -79,40 +87,61 @@ Write-Host "Installing backend dependencies..." -ForegroundColor Yellow
 npm install
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "✗ Backend installation failed!" -ForegroundColor Red
+    Write-Host "Backend installation failed!" -ForegroundColor Red
     exit 1
 }
-Write-Host "✓ Backend dependencies installed" -ForegroundColor Green
+Write-Host "Backend dependencies installed" -ForegroundColor Green
 
 # Check if .env.local exists in backend
 Write-Host ""
 Write-Host "Checking backend configuration..." -ForegroundColor Yellow
-if (-not (Test-Path "backend\.env.local")) {
-    Write-Host "⚠️  backend\.env.local not found!" -ForegroundColor Yellow
-    Write-Host "Please create it first:" -ForegroundColor Cyan
-    Write-Host "  cp backend\.env.example backend\.env.local" -ForegroundColor White
-    Write-Host "  Edit backend\.env.local with your database credentials" -ForegroundColor White
-    $response = Read-Host "Press Enter to continue once you've created backend\.env.local"
-    if (-not (Test-Path "backend\.env.local")) {
-        Write-Host "✗ backend\.env.local still not found!" -ForegroundColor Red
+if (-not (Test-Path ".env.local")) {
+    Write-Host ".env.local not found" -ForegroundColor Cyan
+    Write-Host "Creating .env.local from example..." -ForegroundColor Yellow
+    
+    if (Test-Path ".env.example") {
+        Copy-Item ".env.example" ".env.local"
+        Write-Host ".env.local created" -ForegroundColor Green
+    } else {
+        Write-Host ".env.example not found!" -ForegroundColor Red
         exit 1
     }
 } else {
-    Write-Host "✓ backend\.env.local found" -ForegroundColor Green
+    Write-Host ".env.local found" -ForegroundColor Green
 }
 
 # Run database migrations
 Write-Host ""
 Write-Host "Creating database tables..." -ForegroundColor Yellow
 Write-Host "Note: Make sure PostgreSQL is running and 'exits_lms' database exists" -ForegroundColor Cyan
-
 Write-Host ""
+Write-Host "Database schema includes:" -ForegroundColor Cyan
+Write-Host "  - Tenants with contact info and address support" -ForegroundColor Gray
+Write-Host "  - Users with address management" -ForegroundColor Gray
+Write-Host "  - Customers with addresses for loan management" -ForegroundColor Gray
+Write-Host "  - Roles and permissions with RBAC" -ForegroundColor Gray
+Write-Host "  - Addresses table for multi-entity address linking" -ForegroundColor Gray
+Write-Host "  - Tenant features/modules (Money Loan, BNPL, Pawnshop)" -ForegroundColor Gray
+Write-Host "  - Loans and loan payments tracking" -ForegroundColor Gray
+Write-Host "  - BNPL merchants and orders management" -ForegroundColor Gray
+Write-Host "  - Audit logs for compliance" -ForegroundColor Gray
+Write-Host ""
+
 Write-Host "Executing migration script..." -ForegroundColor Cyan
 npm run migrate 2>&1
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
-    Write-Host "✗ Database migration failed!" -ForegroundColor Red
+    Write-Host "Database migration failed!" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "The migration script creates:" -ForegroundColor Yellow
+    Write-Host "  1. UUID-OSSP extension for unique identifiers" -ForegroundColor Cyan
+    Write-Host "  2. Tenants table with address support" -ForegroundColor Cyan
+    Write-Host "  3. Addresses table for multi-entity linking" -ForegroundColor Cyan
+    Write-Host "  4. Users, Roles, and Permissions tables" -ForegroundColor Cyan
+    Write-Host "  5. Customer and Loan management tables" -ForegroundColor Cyan
+    Write-Host "  6. BNPL and feature management tables" -ForegroundColor Cyan
+    Write-Host "  7. Audit logging tables" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Common issues and solutions:" -ForegroundColor Yellow
     Write-Host ""
@@ -120,44 +149,60 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "   Start PostgreSQL service and try again" -ForegroundColor Gray
     Write-Host ""
     Write-Host "2. Database 'exits_lms' doesn't exist:" -ForegroundColor Cyan
-    Write-Host "   psql -U postgres" -ForegroundColor Gray
-    Write-Host "   CREATE DATABASE exits_lms;" -ForegroundColor Gray
-    Write-Host "   \q" -ForegroundColor Gray
+    Write-Host "   psql -U postgres -c 'CREATE DATABASE exits_lms;'" -ForegroundColor Gray
     Write-Host ""
     Write-Host "3. Wrong database credentials:" -ForegroundColor Cyan
     Write-Host "   Check backend\.env.local configuration:" -ForegroundColor Gray
-    Write-Host "   - DB_HOST" -ForegroundColor Gray
-    Write-Host "   - DB_PORT" -ForegroundColor Gray
-    Write-Host "   - DB_USER" -ForegroundColor Gray
+    Write-Host "   - DB_HOST (default: localhost)" -ForegroundColor Gray
+    Write-Host "   - DB_PORT (default: 5432)" -ForegroundColor Gray
+    Write-Host "   - DB_USER (default: postgres)" -ForegroundColor Gray
     Write-Host "   - DB_PASSWORD" -ForegroundColor Gray
-    Write-Host "   - DB_NAME" -ForegroundColor Gray
+    Write-Host "   - DB_NAME (default: exits_lms)" -ForegroundColor Gray
     Write-Host ""
     Write-Host "4. PostgreSQL connection error:" -ForegroundColor Cyan
     Write-Host "   Verify PostgreSQL is accessible from your system" -ForegroundColor Gray
+    Write-Host "   psql -U postgres -c 'SELECT version();'" -ForegroundColor Gray
     exit 1
 }
-Write-Host "✓ Database tables created successfully" -ForegroundColor Green
+Write-Host "Database tables created successfully" -ForegroundColor Green
+Write-Host ""
+Write-Host "Database Schema Summary:" -ForegroundColor Cyan
+Write-Host "  Tables: 12 (Tenants, Users, Roles, Permissions, Customers, Loans, etc.)" -ForegroundColor Gray
+Write-Host "  Columns: Address fields added for multi-entity support" -ForegroundColor Gray
+Write-Host "  Indexes: Performance optimized for multi-tenant queries" -ForegroundColor Gray
+Write-Host "  Foreign Keys: Full referential integrity enforced" -ForegroundColor Gray
 
 # Seed initial data
 Write-Host ""
 Write-Host "Seeding initial data (roles, permissions, users)..." -ForegroundColor Yellow
+Write-Host "This will populate:" -ForegroundColor Cyan
+Write-Host "  - Platform roles (Super Admin, Support Staff, Developer)" -ForegroundColor Gray
+Write-Host "  - Tenant roles (Admin, Loan Officer, Cashier)" -ForegroundColor Gray
+Write-Host "  - Permissions and role-permission mappings" -ForegroundColor Gray
+Write-Host "  - Demo super admin account" -ForegroundColor Gray
+Write-Host "  - Demo tenant with sample admin user" -ForegroundColor Gray
 Write-Host ""
 npm run seed 2>&1
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
-    Write-Host "✗ Database seeding failed!" -ForegroundColor Red
+    Write-Host "Database seeding failed!" -ForegroundColor Red
     Write-Host "Please check the error messages above" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Note: If migration was successful but seeding failed:" -ForegroundColor Yellow
+    Write-Host "  - Verify the roles were created" -ForegroundColor Gray
+    Write-Host "  - Check .env.local credentials are correct" -ForegroundColor Gray
+    Write-Host "  - Run: npm run seed" -ForegroundColor Gray
     exit 1
 }
-Write-Host "✓ Initial data seeded successfully" -ForegroundColor Green
+Write-Host "Initial data seeded successfully" -ForegroundColor Green
 Write-Host ""
 Write-Host "Seeded data includes:" -ForegroundColor Cyan
-Write-Host "  ✓ Platform Roles (Super Admin)" -ForegroundColor Gray
-Write-Host "  ✓ Tenant Roles (Admin, Loan Officer, Cashier)" -ForegroundColor Gray
-Write-Host "  ✓ Permissions for all roles" -ForegroundColor Gray
-Write-Host "  ✓ Super Admin user account" -ForegroundColor Gray
-Write-Host "  ✓ Demo tenant with admin user" -ForegroundColor Gray
+Write-Host "  Platform Roles (Super Admin, Support Staff, Developer with appropriate permissions)" -ForegroundColor Gray
+Write-Host "  Tenant Roles (Admin, Loan Officer, Cashier with tenant scope)" -ForegroundColor Gray
+Write-Host "  Permissions for all roles" -ForegroundColor Gray
+Write-Host "  Super Admin user account" -ForegroundColor Gray
+Write-Host "  Demo tenant with admin user" -ForegroundColor Gray
 
 # Navigate back
 Set-Location -Path ".."
@@ -174,17 +219,17 @@ Set-Location -Path "frontend"
 Write-Host ""
 Write-Host "Checking frontend configuration..." -ForegroundColor Yellow
 if (-not (Test-Path ".env.local")) {
-    Write-Host "ℹ️  frontend\.env.local not found" -ForegroundColor Cyan
+    Write-Host "frontend\.env.local not found" -ForegroundColor Cyan
     Write-Host "Creating frontend\.env.local from example..." -ForegroundColor Yellow
     
     if (Test-Path ".env.example") {
         Copy-Item ".env.example" ".env.local"
-        Write-Host "✓ frontend\.env.local created" -ForegroundColor Green
+        Write-Host "frontend\.env.local created" -ForegroundColor Green
     } else {
-        Write-Host "⚠️  frontend\.env.example not found!" -ForegroundColor Yellow
+        Write-Host "frontend\.env.example not found!" -ForegroundColor Yellow
     }
 } else {
-    Write-Host "✓ frontend\.env.local found" -ForegroundColor Green
+    Write-Host "frontend\.env.local found" -ForegroundColor Green
 }
 
 # Install frontend dependencies
@@ -194,10 +239,10 @@ Write-Host "This may take a few minutes..." -ForegroundColor Cyan
 npm install
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "✗ Frontend installation failed!" -ForegroundColor Red
+    Write-Host "Frontend installation failed!" -ForegroundColor Red
     exit 1
 }
-Write-Host "✓ Frontend dependencies installed" -ForegroundColor Green
+Write-Host "Frontend dependencies installed" -ForegroundColor Green
 
 # Navigate back
 Set-Location -Path ".."
@@ -205,15 +250,43 @@ Set-Location -Path ".."
 # Success message
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Green
-Write-Host "  ✅ Setup Complete!" -ForegroundColor Green
+Write-Host "  Setup Complete!" -ForegroundColor Green
 Write-Host "============================================" -ForegroundColor Green
 Write-Host ""
+Write-Host "Version: 2.0 - Database Improvements Edition" -ForegroundColor Green
+Write-Host ""
 
-Write-Host "Database Status:" -ForegroundColor Yellow
-Write-Host "  ✓ Tables created" -ForegroundColor Green
-Write-Host "  ✓ Roles configured" -ForegroundColor Green
-Write-Host "  ✓ Permissions assigned" -ForegroundColor Green
-Write-Host "  ✓ Initial data seeded" -ForegroundColor Green
+Write-Host "Database Schema Status:" -ForegroundColor Yellow
+Write-Host "  Tenants table" -ForegroundColor Green
+Write-Host "    - contact_first_name and contact_last_name fields" -ForegroundColor Gray
+Write-Host "    - address_id for linked address management" -ForegroundColor Gray
+Write-Host "  Users table" -ForegroundColor Green
+Write-Host "    - address_id for address linking" -ForegroundColor Gray
+Write-Host "  Customers table" -ForegroundColor Green
+Write-Host "    - address_id replacing legacy address TEXT field" -ForegroundColor Gray
+Write-Host "  Addresses table" -ForegroundColor Green
+Write-Host "    - Multi-entity support (tenants, users, customers)" -ForegroundColor Gray
+Write-Host "    - Primary address tracking" -ForegroundColor Gray
+Write-Host ""
+
+Write-Host "Roles and Permissions:" -ForegroundColor Yellow
+Write-Host "  Platform Roles (for system team management):" -ForegroundColor Green
+Write-Host "    - Super Admin: Full platform access with all permissions" -ForegroundColor Gray
+Write-Host "    - Support Staff: View audit logs, manage users, view customers/loans/payments" -ForegroundColor Gray
+Write-Host "    - Developer: Technical support with platform settings and audit access" -ForegroundColor Gray
+Write-Host "  Tenant Roles (for tenant-specific operations):" -ForegroundColor Green
+Write-Host "    - Tenant Admin: Full tenant access (manage customers, loans, users)" -ForegroundColor Gray
+Write-Host "    - Loan Officer: Manage loans, customers, and BNPL operations" -ForegroundColor Gray
+Write-Host "    - Cashier: Process payments and view transactions" -ForegroundColor Gray
+Write-Host "  Permissions: Fully mapped for RBAC" -ForegroundColor Green
+Write-Host ""
+
+Write-Host "Features Enabled:" -ForegroundColor Yellow
+Write-Host "  Multi-tenant architecture with realm isolation" -ForegroundColor Green
+Write-Host "  Role-based access control (RBAC)" -ForegroundColor Green
+Write-Host "  Address management for all entities" -ForegroundColor Green
+Write-Host "  Tenant-specific modules (Money Loan, BNPL, Pawnshop)" -ForegroundColor Green
+Write-Host "  Audit logging for compliance" -ForegroundColor Green
 Write-Host ""
 
 Write-Host "To start the application:" -ForegroundColor Yellow
@@ -233,22 +306,63 @@ Write-Host "Default Login Credentials:" -ForegroundColor Yellow
 Write-Host "  Super Admin:" -ForegroundColor Cyan
 Write-Host "    Email: admin@exits-lms.com" -ForegroundColor White
 Write-Host "    Password: admin123" -ForegroundColor Gray
+Write-Host "    Scope: Platform-wide super admin access" -ForegroundColor Gray
 Write-Host ""
 Write-Host "  Tenant Admin (Demo):" -ForegroundColor Cyan
 Write-Host "    Email: admin@demo.com" -ForegroundColor White
 Write-Host "    Password: demo123" -ForegroundColor Gray
+Write-Host "    Scope: Tenant-scoped admin access" -ForegroundColor Gray
 Write-Host ""
 
-Write-Host "⚠️  Security Reminder:" -ForegroundColor Yellow
-Write-Host "  • Change these passwords immediately in production!" -ForegroundColor Red
-Write-Host "  • Never commit .env files to GitHub" -ForegroundColor Red
-Write-Host "  • Keep .env.local files on your local machine only" -ForegroundColor Red
+Write-Host "Database Connection Info:" -ForegroundColor Yellow
+Write-Host "  Host: localhost" -ForegroundColor Cyan
+Write-Host "  Port: 5432" -ForegroundColor Cyan
+Write-Host "  Database: exits_lms" -ForegroundColor Cyan
+Write-Host "  User: postgres" -ForegroundColor Cyan
+Write-Host "  Location: backend\.env.local" -ForegroundColor Gray
 Write-Host ""
 
-Write-Host "📚 Documentation:" -ForegroundColor Yellow
-Write-Host "  • See ENV_SETUP_GUIDE.md for environment configuration" -ForegroundColor Cyan
-Write-Host "  • See GITHUB_PUSH_GUIDE.md for GitHub push instructions" -ForegroundColor Cyan
-Write-Host "  • See START_HERE.md for quick reference" -ForegroundColor Cyan
+Write-Host "Security Reminders:" -ForegroundColor Yellow
+Write-Host "  IMPORTANT: Change these passwords immediately in production!" -ForegroundColor Red
+Write-Host "  Never commit .env files to GitHub" -ForegroundColor Red
+Write-Host "  Keep .env.local files on your local machine only" -ForegroundColor Red
+Write-Host "  Use strong passwords for database user in production" -ForegroundColor Red
+Write-Host "  Enable PostgreSQL SSL for remote connections" -ForegroundColor Red
 Write-Host ""
 
-Write-Host "Happy coding! 🚀" -ForegroundColor Green
+Write-Host "Database Migration Features:" -ForegroundColor Yellow
+Write-Host "  - UUID-OSSP extension for unique identifiers" -ForegroundColor Cyan
+Write-Host "  - Addresses table with multi-entity support" -ForegroundColor Cyan
+Write-Host "  - Contact information fields on tenants" -ForegroundColor Cyan
+Write-Host "  - Address linking for users and customers" -ForegroundColor Cyan
+Write-Host "  - Performance indexes for multi-tenant queries" -ForegroundColor Cyan
+Write-Host "  - Referential integrity constraints" -ForegroundColor Cyan
+Write-Host ""
+
+Write-Host "Additional Documentation:" -ForegroundColor Yellow
+Write-Host "  Database Migration: See backend/scripts/migrate.js" -ForegroundColor Cyan
+Write-Host "  Seed Data: See backend/scripts/seed.js" -ForegroundColor Cyan
+Write-Host "  Environment: See ENV_SETUP_GUIDE.md" -ForegroundColor Cyan
+Write-Host "  GitHub: See GITHUB_PUSH_GUIDE.md" -ForegroundColor Cyan
+Write-Host "  Quick Start: See START_HERE.md" -ForegroundColor Cyan
+Write-Host ""
+
+Write-Host "To recreate the database:" -ForegroundColor Yellow
+Write-Host "  1. Drop database: psql -U postgres -c 'DROP DATABASE IF EXISTS exits_lms;'" -ForegroundColor Gray
+Write-Host "  2. Create database: psql -U postgres -c 'CREATE DATABASE exits_lms;'" -ForegroundColor Gray
+Write-Host "  3. Run migration: cd backend && npm run migrate" -ForegroundColor Gray
+Write-Host "  4. Seed data: npm run seed" -ForegroundColor Gray
+Write-Host ""
+
+Write-Host "Troubleshooting:" -ForegroundColor Yellow
+Write-Host "  If you encounter column errors after migration:" -ForegroundColor Cyan
+Write-Host "    - Backend server has stale connections" -ForegroundColor Gray
+Write-Host "    - Solution: Restart 'npm run dev' to refresh connections" -ForegroundColor Gray
+Write-Host "  If permissions are denied:" -ForegroundColor Cyan
+Write-Host "    - Login with correct credentials" -ForegroundColor Gray
+Write-Host "    - Verify role assignments in database" -ForegroundColor Gray
+Write-Host ""
+
+Write-Host "Happy coding! Application is ready for development." -ForegroundColor Green
+Write-Host "Report issues: https://github.com/apps-eduard/Exits-LMS" -ForegroundColor Cyan
+Write-Host ""

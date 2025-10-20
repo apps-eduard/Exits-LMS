@@ -13,6 +13,20 @@ const seedData = async () => {
       RETURNING id;
     `);
 
+    const supportStaffRole = await db.query(`
+      INSERT INTO roles (name, scope, description)
+      VALUES ('Support Staff', 'platform', 'Support and customer service')
+      ON CONFLICT DO NOTHING
+      RETURNING id;
+    `);
+
+    const developerRole = await db.query(`
+      INSERT INTO roles (name, scope, description)
+      VALUES ('Developer', 'platform', 'Development and technical support')
+      ON CONFLICT DO NOTHING
+      RETURNING id;
+    `);
+
     // Create Tenant Roles
     const tenantAdminRole = await db.query(`
       INSERT INTO roles (name, scope, description)
@@ -80,6 +94,38 @@ const seedData = async () => {
            VALUES ($1, $2)
            ON CONFLICT DO NOTHING`,
           [superAdminRole.rows[0].id, perm.id]
+        );
+      }
+    }
+
+    // Assign permissions to Support Staff (limited permissions)
+    if (supportStaffRole.rows.length > 0) {
+      const supportPerms = await db.query(`
+        SELECT id FROM permissions 
+        WHERE name IN ('view_audit_logs', 'manage_users', 'view_customers', 'view_loans', 'view_payments')
+      `);
+      for (const perm of supportPerms.rows) {
+        await db.query(
+          `INSERT INTO role_permissions (role_id, permission_id)
+           VALUES ($1, $2)
+           ON CONFLICT DO NOTHING`,
+          [supportStaffRole.rows[0].id, perm.id]
+        );
+      }
+    }
+
+    // Assign permissions to Developer (technical permissions)
+    if (developerRole.rows.length > 0) {
+      const devPerms = await db.query(`
+        SELECT id FROM permissions 
+        WHERE name IN ('view_audit_logs', 'manage_platform_settings', 'manage_users', 'view_customers', 'view_loans')
+      `);
+      for (const perm of devPerms.rows) {
+        await db.query(
+          `INSERT INTO role_permissions (role_id, permission_id)
+           VALUES ($1, $2)
+           ON CONFLICT DO NOTHING`,
+          [developerRole.rows[0].id, perm.id]
         );
       }
     }
@@ -157,11 +203,11 @@ const seedData = async () => {
 
     // Create Demo Tenant
     const demoTenant = await db.query(
-      `INSERT INTO tenants (name, subdomain, contact_first_name, contact_last_name, contact_email, status, subscription_plan)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO tenants (name, subdomain, contact_first_name, contact_last_name, contact_email, contact_phone, status, subscription_plan)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        ON CONFLICT DO NOTHING
        RETURNING id`,
-      ['Demo Company', 'demo', 'Demo', 'Admin', 'demo@example.com', 'active', 'trial']
+      ['Demo Company', 'demo', 'Demo', 'Admin', 'demo@example.com', '+1-555-0123', 'active', 'trial']
     );
 
     if (demoTenant.rows.length > 0) {

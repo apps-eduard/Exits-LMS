@@ -65,6 +65,10 @@ export const routes: Routes = [
       {
         path: 'settings',
         loadComponent: () => import('./pages/super-admin/settings/settings.component').then(m => m.SettingsComponent)
+      },
+      {
+        path: 'settings/roles',
+        loadComponent: () => import('./pages/super-admin/settings/role-management.component').then(m => m.RoleManagementComponent)
       }
     ]
   },
