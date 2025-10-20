@@ -224,7 +224,7 @@
                 *ngFor="let variable of selectedTemplate()!.variables"
                 class="bg-purple-900/30 border border-purple-700 text-purple-400 text-xs px-2 py-1 rounded font-mono"
               >
-                {{{{ variable }}}}
+                <code>{{ '{' }}{{ '{' }} {{ variable }} {{ '}' }}{{ '}' }}</code>
               </span>
             </div>
           </div>
