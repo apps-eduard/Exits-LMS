@@ -68,6 +68,21 @@ export class ActivityLogsComponent implements OnInit {
     this.loadActivities();
   }
 
+  onFilterActionChange(value: string): void {
+    this.filterAction.set(value);
+    this.onFilter();
+  }
+
+  onFilterEntityChange(value: string): void {
+    this.filterEntity.set(value);
+    this.onFilter();
+  }
+
+  onDateRangeChange(value: string): void {
+    this.dateRange.set(value);
+    this.onFilter();
+  }
+
   clearFilters(): void {
     this.searchUser.set('');
     this.filterAction.set('all');
