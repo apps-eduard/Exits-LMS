@@ -128,24 +128,22 @@ const createTenant = async (req, res) => {
     const tenant = tenantResult.rows[0];
     console.log('✅ [TENANT_CREATED]', { id: tenant.id, name: tenant.name, subdomain: tenant.subdomain });
 
-    // Create address if provided (only if street_address is provided)
-    if (street_address) {
-      console.log('📍 [CREATING_ADDRESS] Creating address record...');
-      const addrResult = await client.query(
-        `INSERT INTO addresses (tenant_id, entity_type, entity_id, street_address, city, barangay, province, region, postal_code, country, is_primary, address_type)
-         VALUES ($1, 'tenant', $2, $3, $4, $5, $6, $7, $8, $9, true, 'primary')
-         RETURNING id`,
-        [tenant.id, tenant.id, street_address, city || null, barangay || null, province || null, region || null, postal_code || null, country || 'Philippines']
-      );
-      console.log('✅ [ADDRESS_CREATED]', { addressId: addrResult.rows[0].id });
+    // ALWAYS create an address record (even if empty) so user can fill it in later during edit
+    console.log('📍 [CREATING_ADDRESS] Creating address record...');
+    const addrResult = await client.query(
+      `INSERT INTO addresses (tenant_id, entity_type, entity_id, street_address, city, barangay, province, region, postal_code, country, is_primary, address_type)
+       VALUES ($1, 'tenant', $2, $3, $4, $5, $6, $7, $8, $9, true, 'primary')
+       RETURNING id`,
+      [tenant.id, tenant.id, street_address || null, city || null, barangay || null, province || null, region || null, postal_code || null, country || 'Philippines']
+    );
+    console.log('✅ [ADDRESS_CREATED]', { addressId: addrResult.rows[0].id });
 
-      // Link address to tenant
-      await client.query(
-        'UPDATE tenants SET address_id = $1 WHERE id = $2',
-        [addrResult.rows[0].id, tenant.id]
-      );
-      console.log('✅ [ADDRESS_LINKED] Address linked to tenant');
-    }
+    // Link address to tenant
+    await client.query(
+      'UPDATE tenants SET address_id = $1 WHERE id = $2',
+      [addrResult.rows[0].id, tenant.id]
+    );
+    console.log('✅ [ADDRESS_LINKED] Address linked to tenant');
     
     // Create default tenant features (disabled by default)
     console.log('🔧 [CREATING_FEATURES] Creating tenant features...');
@@ -253,53 +251,50 @@ const updateTenant = async (req, res) => {
 
     const tenant = result.rows[0];
 
-    // Update or create address if provided (only if street_address has a value)
-    if (street_address) {
-      console.log('📍 [UPDATING_ADDRESS] Address data received:', {
-        street_address, city, barangay, province, region, postal_code, country
-      });
-      
-      const existingAddr = await client.query(
-        'SELECT id FROM addresses WHERE entity_type = $1 AND entity_id = $2 AND is_primary = true',
-        ['tenant', id]
+    // ALWAYS update or create address (even with empty/null values)
+    // This ensures address fields are always available when editing
+    console.log('📍 [UPDATING_ADDRESS] Address data:', {
+      street_address, city, barangay, province, region, postal_code, country
+    });
+    
+    const existingAddr = await client.query(
+      'SELECT id FROM addresses WHERE entity_type = $1 AND entity_id = $2 AND is_primary = true',
+      ['tenant', id]
+    );
+
+    if (existingAddr.rows.length > 0) {
+      // Update existing address
+      console.log('🔄 [UPDATING_EXISTING_ADDRESS]', { addressId: existingAddr.rows[0].id });
+      await client.query(
+        `UPDATE addresses SET
+          street_address = COALESCE(NULLIF($1, ''), street_address),
+          city = COALESCE(NULLIF($2, ''), city),
+          barangay = COALESCE(NULLIF($3, ''), barangay),
+          province = COALESCE(NULLIF($4, ''), province),
+          region = COALESCE(NULLIF($5, ''), region),
+          postal_code = COALESCE(NULLIF($6, ''), postal_code),
+          country = COALESCE(NULLIF($7, ''), country, 'Philippines'),
+          updated_at = CURRENT_TIMESTAMP
+         WHERE id = $8`,
+        [street_address, city, barangay, province, region, postal_code, country, existingAddr.rows[0].id]
+      );
+      console.log('✅ [ADDRESS_UPDATED]');
+    } else {
+      // Create new address if none exists
+      console.log('➕ [CREATING_NEW_ADDRESS]');
+      const addrResult = await client.query(
+        `INSERT INTO addresses (tenant_id, entity_type, entity_id, street_address, city, barangay, province, region, postal_code, country, is_primary, address_type)
+         VALUES ($1, 'tenant', $2, $3, $4, $5, $6, $7, $8, $9, true, 'primary')
+         RETURNING id`,
+        [id, id, street_address || null, city || null, barangay || null, province || null, region || null, postal_code || null, country || 'Philippines']
       );
 
-      if (existingAddr.rows.length > 0) {
-        // Update existing address
-        console.log('🔄 [UPDATING_EXISTING_ADDRESS]', { addressId: existingAddr.rows[0].id });
-        await client.query(
-          `UPDATE addresses SET
-            street_address = COALESCE($1, street_address),
-            city = COALESCE($2, city),
-            barangay = COALESCE($3, barangay),
-            province = COALESCE($4, province),
-            region = COALESCE($5, region),
-            postal_code = COALESCE($6, postal_code),
-            country = COALESCE($7, country),
-            updated_at = CURRENT_TIMESTAMP
-           WHERE id = $8`,
-          [street_address, city || null, barangay || null, province || null, region || null, postal_code || null, country || 'Philippines', existingAddr.rows[0].id]
-        );
-        console.log('✅ [ADDRESS_UPDATED]');
-      } else {
-        // Create new address only if street_address is provided
-        console.log('➕ [CREATING_NEW_ADDRESS]');
-        const addrResult = await client.query(
-          `INSERT INTO addresses (tenant_id, entity_type, entity_id, street_address, city, barangay, province, region, postal_code, country, is_primary, address_type)
-           VALUES ($1, 'tenant', $2, $3, $4, $5, $6, $7, $8, $9, true, 'primary')
-           RETURNING id`,
-          [tenant.id, tenant.id, street_address, city || null, barangay || null, province || null, region || null, postal_code || null, country || 'Philippines']
-        );
-
-        // Link address to tenant
-        await client.query(
-          'UPDATE tenants SET address_id = $1 WHERE id = $2',
-          [addrResult.rows[0].id, tenant.id]
-        );
-        console.log('✅ [ADDRESS_CREATED_AND_LINKED]', { addressId: addrResult.rows[0].id });
-      }
-    } else {
-      console.log('ℹ️ [NO_ADDRESS_UPDATE] street_address not provided');
+      // Link address to tenant
+      await client.query(
+        'UPDATE tenants SET address_id = $1 WHERE id = $2',
+        [addrResult.rows[0].id, id]
+      );
+      console.log('✅ [ADDRESS_CREATED_AND_LINKED]', { addressId: addrResult.rows[0].id });
     }
 
     // Update module settings if provided
