@@ -37,7 +37,7 @@ export class TenantListComponent implements OnInit {
   readonly loading = signal(true);
   readonly searchTerm = signal('');
   readonly statusFilter = signal('all');
-  readonly activeTab = signal<'active' | 'suspended'>('active');
+  readonly activeTab = signal<'all' | 'active' | 'suspended'>('all');
 
   private searchSubject = new Subject<void>();
 

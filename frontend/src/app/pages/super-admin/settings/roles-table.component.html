@@ -1,19 +1,19 @@
-<table class="w-full text-xs">
-  <thead class="bg-gray-900/50 border-b border-gray-700">
+<table class="w-full text-sm">
+  <thead class="bg-gray-100 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
     <tr>
-      <th class="text-left px-4 py-3 text-gray-400 font-semibold">Role Name</th>
-      <th class="text-left px-4 py-3 text-gray-400 font-semibold">Description</th>
-      <th class="text-left px-4 py-3 text-gray-400 font-semibold">Permissions</th>
-      <th class="text-left px-4 py-3 text-gray-400 font-semibold">Actions</th>
+      <th class="text-left px-4 py-3 text-gray-700 dark:text-gray-400 font-semibold">Role Name</th>
+      <th class="text-left px-4 py-3 text-gray-700 dark:text-gray-400 font-semibold">Description</th>
+      <th class="text-left px-4 py-3 text-gray-700 dark:text-gray-400 font-semibold">Permissions</th>
+      <th class="text-left px-4 py-3 text-gray-700 dark:text-gray-400 font-semibold">Actions</th>
     </tr>
   </thead>
   <tbody>
     <ng-container *ngFor="let role of roles">
-      <tr class="border-b border-gray-700/50 hover:bg-gray-800/30" [ngClass]="{'bg-gray-800/70': isProtectedRole(role.name)}">
-        <td class="px-4 py-3"><div class="flex items-center gap-2"><span class="text-white">{{ role.name }}</span><span *ngIf="isProtectedRole(role.name)" class="px-2 py-0.5 bg-yellow-600/20 text-yellow-300 rounded text-xs">Protected</span></div></td>
-        <td class="px-4 py-3 text-gray-400">{{ role.description }}</td>
-        <td class="px-4 py-3"><span class="px-2 py-1 bg-purple-600/20 text-purple-300 rounded text-xs">{{ role.permissions.length || 0 }} permissions</span></td>
-        <td class="px-4 py-3"><div class="flex gap-2"><button (click)="editRole(role)" class="px-2 py-1 bg-blue-600/20 text-blue-300 hover:bg-blue-600/30 rounded text-xs transition" [disabled]="isProtectedRole(role.name)">✏️ Edit</button><button (click)="deleteRole(role)" class="px-2 py-1 bg-red-600/20 text-red-300 hover:bg-red-600/30 rounded text-xs transition" [disabled]="isProtectedRole(role.name)">🗑️ Delete</button></div></td>
+      <tr class="border-b border-gray-200 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition" [ngClass]="{'bg-white dark:bg-gray-800/50': !isProtectedRole(role.name), 'bg-purple-50 dark:bg-purple-900/10': isProtectedRole(role.name)}">
+        <td class="px-4 py-3"><div class="flex items-center gap-2"><span class="text-gray-900 dark:text-white font-medium">{{ role.name }}</span><span *ngIf="isProtectedRole(role.name)" class="px-2 py-1 bg-yellow-100 dark:bg-yellow-600/20 text-yellow-700 dark:text-yellow-300 rounded text-xs font-medium">Protected</span></div></td>
+        <td class="px-4 py-3 text-gray-600 dark:text-gray-400">{{ role.description }}</td>
+        <td class="px-4 py-3"><span class="px-2 py-1 bg-purple-100 dark:bg-purple-600/20 text-purple-700 dark:text-purple-300 rounded text-xs font-medium">{{ role.permissions.length || 0 }} permissions</span></td>
+        <td class="px-4 py-3"><div class="flex gap-2"><button (click)="editRole(role)" class="px-3 py-1 bg-blue-100 dark:bg-blue-600/20 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-600/30 rounded text-xs font-medium transition disabled:opacity-50 disabled:cursor-not-allowed" [disabled]="isProtectedRole(role.name)">✏️ Edit</button><button (click)="deleteRole(role)" class="px-3 py-1 bg-red-100 dark:bg-red-600/20 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-600/30 rounded text-xs font-medium transition disabled:opacity-50 disabled:cursor-not-allowed" [disabled]="isProtectedRole(role.name)">🗑️ Delete</button></div></td>
       </tr>
     </ng-container>
   </tbody>

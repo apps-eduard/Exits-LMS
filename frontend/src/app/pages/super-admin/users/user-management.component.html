@@ -117,16 +117,20 @@
 
             <!-- Actions -->
             <td class="px-6 py-4">
-              <div class="flex gap-3 items-center">
+              <div class="flex gap-2 items-center">
                 <button 
                   (click)="toggleUserStatus(user)"
                   [disabled]="toggling[user.id]"
-                  class="px-3 py-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-xs font-medium rounded transition disabled:opacity-50"
+                  [ngClass]="{
+                    'bg-green-100 dark:bg-green-600/20 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-600/30': user.is_active,
+                    'bg-gray-100 dark:bg-gray-600/20 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600/30': !user.is_active
+                  }"
+                  class="px-3 py-1 text-xs font-medium rounded transition disabled:opacity-50"
                   [title]="user.is_active ? 'Deactivate' : 'Activate'">
-                  {{ toggling[user.id] ? '...' : (user.is_active ? '🔒' : '🔓') }}
+                  {{ toggling[user.id] ? '...' : (user.is_active ? '🔒 Deactivate' : '🔓 Activate') }}
                 </button>
-                <a [routerLink]="['/super-admin/users', user.id, 'edit']" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium text-xs">
-                  Edit
+                <a [routerLink]="['/super-admin/users', user.id, 'edit']" class="px-3 py-1 bg-blue-100 dark:bg-blue-600/20 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-600/30 rounded text-xs font-medium transition">
+                  ✏️ Edit
                 </a>
               </div>
             </td>

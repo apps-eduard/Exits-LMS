@@ -279,15 +279,15 @@ Write-Host "  Security (password length, session timeout, login attempts)" -Fore
 Write-Host ""
 Write-Host "Seeding application menus..." -ForegroundColor Yellow
 Write-Host "This will populate comprehensive menu structure:" -ForegroundColor Cyan
-Write-Host "  Platform Menus (30 total):" -ForegroundColor Gray
-Write-Host "    - Overview: Dashboard, Audit Logs" -ForegroundColor Gray
-Write-Host "    - Tenant Management: All Tenants, Active, Suspended, Create" -ForegroundColor Gray
-Write-Host "    - Analytics & Reports: System Analytics, Revenue, User Activity, Tenant Usage" -ForegroundColor Gray
-Write-Host "    - Billing & Subscriptions: Subscriptions, Plans, Invoices, Payments" -ForegroundColor Gray
-Write-Host "    - Notifications: System Notifications, Alerts, Announcements" -ForegroundColor Gray
-Write-Host "    - System Health: Health Check, Performance Metrics, Error Logs, Background Jobs" -ForegroundColor Gray
-Write-Host "    - Settings: System Roles, Menu Management, Email Config, Security, API Management" -ForegroundColor Gray
-Write-Host "    - System Team: Team Members, Activity Logs" -ForegroundColor Gray
+Write-Host "  Platform Menus (24 total):" -ForegroundColor Gray
+Write-Host "    - Dashboard (1)" -ForegroundColor Gray
+Write-Host "    - Tenant Management: Tenants, User Tenants, Create Tenant (3)" -ForegroundColor Gray
+Write-Host "    - Analytics & Reports: System Analytics, Revenue, User Activity, Tenant Usage (4)" -ForegroundColor Gray
+Write-Host "    - Billing & Subscriptions: Subscriptions, Plans, Invoices, Payments (4)" -ForegroundColor Gray
+Write-Host "    - Notifications: Notifications, Alerts, Announcements (3)" -ForegroundColor Gray
+Write-Host "    - Health and Logs: Health and Logs, Audit Logs, System Logs, Performance, Errors, Jobs (6)" -ForegroundColor Gray
+Write-Host "    - Settings: Settings, System Settings (2 - Email Config and API Management removed)" -ForegroundColor Gray
+Write-Host "    - System Users (1)" -ForegroundColor Gray
 Write-Host "  Tenant Menus (37 total):" -ForegroundColor Gray
 Write-Host "    - Customers: All Customers, Active, Inactive, New, KYC" -ForegroundColor Gray
 Write-Host "    - Loans: All Loans, Active, Pending, Completed, Applications" -ForegroundColor Gray
@@ -311,11 +311,40 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "Application menus seeded successfully" -ForegroundColor Green
     Write-Host ""
     Write-Host "Menu Structure Summary:" -ForegroundColor Cyan
-    Write-Host "  Total Menus: 67 (30 platform + 37 tenant)" -ForegroundColor Gray
-    Write-Host "  Parent Menus: 18 root sections" -ForegroundColor Gray
-    Write-Host "  Child Menus: 49 sub-menu items" -ForegroundColor Gray
+    Write-Host "  Total Menus: 61 (24 platform + 37 tenant)" -ForegroundColor Gray
+    Write-Host "  Platform Menus:" -ForegroundColor Gray
+    Write-Host "    - Dashboard (1)" -ForegroundColor Gray
+    Write-Host "    - Tenant Management: Tenants, User Tenants, Create (3)" -ForegroundColor Gray
+    Write-Host "    - System Analytics (4)" -ForegroundColor Gray
+    Write-Host "    - Billing & Subscriptions (4)" -ForegroundColor Gray
+    Write-Host "    - Notifications (3)" -ForegroundColor Gray
+    Write-Host "    - Health and Logs (6)" -ForegroundColor Gray
+    Write-Host "    - Settings (2)" -ForegroundColor Gray
+    Write-Host "    - System Users (1)" -ForegroundColor Gray
+    Write-Host "  Parent Menus: 8 root sections" -ForegroundColor Gray
+    Write-Host "  Child Menus: 16 sub-menu items" -ForegroundColor Gray
     Write-Host "  Access: Menu Management at /super-admin/settings/menus" -ForegroundColor Gray
     Write-Host "  Features: Edit-only UI (name, icon, parent, order, status)" -ForegroundColor Gray
+}
+
+# Assign menus to Super Admin role
+Write-Host ""
+Write-Host "Assigning menus to Super Admin role..." -ForegroundColor Yellow
+Write-Host "This will grant Super Admin access to all platform menus" -ForegroundColor Cyan
+Write-Host ""
+node scripts/assign-menus-to-super-admin.js 2>&1
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "Menu assignment failed!" -ForegroundColor Red
+    Write-Host "Please check the error messages above" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Note: You can manually assign menus later by running:" -ForegroundColor Yellow
+    Write-Host "  cd backend && node scripts/assign-menus-to-super-admin.js" -ForegroundColor Gray
+} else {
+    Write-Host "Menus assigned to Super Admin successfully" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Super Admin now has access to all 24 platform menus" -ForegroundColor Cyan
 }
 
 # Navigate back

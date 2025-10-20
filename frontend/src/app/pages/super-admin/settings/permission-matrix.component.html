@@ -1,28 +1,28 @@
-<div class="p-4 lg:p-6">
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white p-4 lg:p-6">
   <!-- Header -->
   <div class="mb-6 flex items-center justify-between">
     <div>
-      <h1 class="text-2xl font-bold text-white mb-2">Role & Menu Management</h1>
-      <p class="text-sm text-gray-400">Assign menus and navigation items to platform roles</p>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">Role & Menu Management</h1>
+      <p class="text-sm text-gray-600 dark:text-gray-400">Assign menus and navigation items to platform roles</p>
     </div>
     <div>
       <button 
         *ngIf="activeTab() === 'roles'"
         (click)="createNewRole()" 
-        class="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-semibold rounded-lg hover:shadow-lg transition">
+        class="px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg hover:shadow-lg transition">
         ➕ Create System Role
       </button>
       <div *ngIf="activeTab() === 'matrix'" class="flex gap-2">
         <button 
           (click)="saveAllChanges()" 
           [disabled]="!hasChanges() || saving()"
-          class="px-4 py-2 text-sm font-semibold rounded-lg transition"
-          [ngClass]="hasChanges() ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:shadow-lg' : 'bg-gray-700 text-gray-400 cursor-not-allowed'">
+          class="px-4 py-3 text-sm font-semibold rounded-lg transition"
+          [ngClass]="hasChanges() ? 'bg-purple-600 hover:bg-purple-700 text-white hover:shadow-lg' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'">
           {{ saving() ? '⏳ Saving...' : '💾 Save All Changes' }}
         </button>
         <button 
           (click)="loadMatrix()" 
-          class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition">
+          class="px-4 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-sm font-medium rounded-lg transition">
           🔄 Refresh
         </button>
       </div>
@@ -30,45 +30,45 @@
   </div>
 
   <!-- Tab Navigation -->
-  <div class="flex gap-2 mb-6 border-b border-gray-700">
+  <div class="flex gap-2 mb-6 border-b border-gray-200 dark:border-gray-700">
     <button (click)="activeTab.set('roles')"
-            [ngClass]="{'border-b-2': activeTab() === 'roles', 'border-purple-500': activeTab() === 'roles', 'text-purple-400': activeTab() === 'roles'}"
-            class="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition">
+            [ngClass]="{'border-b-2': activeTab() === 'roles', 'border-purple-600 dark:border-purple-400': activeTab() === 'roles', 'text-purple-600 dark:text-purple-400': activeTab() === 'roles'}"
+            class="px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition">
       👥 System Roles ({{ platformRoles().length }})
     </button>
     <button (click)="activeTab.set('matrix')"
-            [ngClass]="{'border-b-2': activeTab() === 'matrix', 'border-purple-500': activeTab() === 'matrix', 'text-purple-400': activeTab() === 'matrix'}"
-            class="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition">
-      � Menu Assignments
+            [ngClass]="{'border-b-2': activeTab() === 'matrix', 'border-purple-600 dark:border-purple-400': activeTab() === 'matrix', 'text-purple-600 dark:text-purple-400': activeTab() === 'matrix'}"
+            class="px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition">
+      📋 Menu Assignments
     </button>
   </div>
 
   <!-- TAB 1: System Roles List -->
   <div *ngIf="activeTab() === 'roles'">
     <!-- Create/Edit Form -->
-    <div *ngIf="showCreateForm()" class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-4">
-      <h2 class="text-lg font-bold text-white mb-4">{{ editMode() ? '✏️ Edit System Role' : '➕ Create New System Role' }}</h2>
+    <div *ngIf="showCreateForm()" class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-4">
+      <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">{{ editMode() ? '✏️ Edit System Role' : '➕ Create New System Role' }}</h2>
       
       <form [formGroup]="roleForm" class="space-y-4">
         <!-- Role Name -->
         <div>
-          <label class="block text-xs font-medium text-gray-300 mb-1">Role Name *</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Role Name *</label>
           <input type="text" formControlName="name" placeholder="e.g., Platform Manager"
-                 class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+                 class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:border-purple-600 dark:focus:border-purple-400 focus:outline-none"
                  [class.border-red-600]="roleForm.get('name')?.invalid && roleForm.get('name')?.touched" />
-          <p *ngIf="roleForm.get('name')?.invalid && roleForm.get('name')?.touched" class="mt-1 text-xs text-red-400">
+          <p *ngIf="roleForm.get('name')?.invalid && roleForm.get('name')?.touched" class="mt-1 text-sm text-red-600 dark:text-red-400">
             Role name is required (min 3 characters)
           </p>
         </div>
 
         <!-- Description -->
         <div>
-          <label class="block text-xs font-medium text-gray-300 mb-1">Description *</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description *</label>
           <textarea formControlName="description" placeholder="Describe the purpose of this system role..."
                     rows="3"
-                    class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+                    class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:border-purple-600 dark:focus:border-purple-400 focus:outline-none"
                     [class.border-red-600]="roleForm.get('description')?.invalid && roleForm.get('description')?.touched"></textarea>
-          <p *ngIf="roleForm.get('description')?.invalid && roleForm.get('description')?.touched" class="mt-1 text-xs text-red-400">
+          <p *ngIf="roleForm.get('description')?.invalid && roleForm.get('description')?.touched" class="mt-1 text-sm text-red-600 dark:text-red-400">
             Description is required (min 10 characters)
           </p>
         </div>
@@ -76,11 +76,11 @@
         <!-- Form Actions -->
         <div class="flex gap-2 justify-end pt-4">
           <button type="button" (click)="cancelForm()"
-                  class="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium rounded transition">
+                  class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-sm font-medium rounded-lg transition">
             Cancel
           </button>
           <button type="button" (click)="saveRole()" [disabled]="saving()"
-                  class="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-xs font-semibold rounded hover:shadow-lg transition disabled:opacity-50">
+                  class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg hover:shadow-lg transition disabled:opacity-50">
             {{ saving() ? '⏳ Saving...' : (editMode() ? '💾 Update' : '✨ Create') }}
           </button>
         </div>
@@ -88,14 +88,14 @@
     </div>
 
     <!-- Roles List -->
-    <div class="bg-gray-800/50 border border-gray-700 rounded-lg overflow-hidden">
+    <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
       <div *ngIf="loading()" class="p-8 flex flex-col items-center justify-center">
         <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600 mb-4"></div>
-        <p class="text-gray-400 text-sm">Loading roles...</p>
+        <p class="text-gray-600 dark:text-gray-400 text-sm">Loading roles...</p>
       </div>
 
       <div *ngIf="!loading() && platformRoles().length === 0" class="p-8 text-center">
-        <p class="text-gray-400 text-sm">No platform roles found. Create your first role!</p>
+        <p class="text-gray-600 dark:text-gray-400 text-sm">No platform roles found. Create your first role!</p>
       </div>
 
       <div *ngIf="!loading() && platformRoles().length > 0" class="overflow-x-auto">
@@ -108,56 +108,56 @@
   <div *ngIf="activeTab() === 'matrix'">
     <!-- Summary Stats -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-      <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
-        <p class="text-xs text-gray-400 mb-1">Total Roles</p>
-        <p class="text-xl font-bold text-white">{{ platformRoles().length }}</p>
+      <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Roles</p>
+        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ platformRoles().length }}</p>
       </div>
-      <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
-        <p class="text-xs text-gray-400 mb-1">Total Menus</p>
-        <p class="text-xl font-bold text-white">{{ allMenus().length }}</p>
+      <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Menus</p>
+        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ allMenus().length }}</p>
       </div>
-      <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
-        <p class="text-xs text-gray-400 mb-1">Protected Roles</p>
-        <p class="text-xl font-bold text-white">{{ getProtectedRoleCount() }}</p>
+      <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Protected Roles</p>
+        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ getProtectedRoleCount() }}</p>
       </div>
-      <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3" *ngIf="hasChanges()">
-        <p class="text-xs text-gray-400 mb-1">Unsaved Changes</p>
-        <p class="text-xl font-bold text-yellow-400">{{ getChangeCount() }}</p>
+      <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4" *ngIf="hasChanges()">
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Unsaved Changes</p>
+        <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ getChangeCount() }}</p>
       </div>
     </div>
 
     <!-- Loading State -->
-    <div *ngIf="loading()" class="bg-gray-800/50 border border-gray-700 rounded-lg p-8 flex flex-col items-center justify-center">
+    <div *ngIf="loading()" class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-8 flex flex-col items-center justify-center">
       <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600 mb-4"></div>
-      <p class="text-gray-400 text-sm">Loading menu assignments...</p>
+      <p class="text-gray-600 dark:text-gray-400 text-sm">Loading menu assignments...</p>
     </div>
 
     <!-- Matrix Grid -->
-    <div *ngIf="!loading()" class="bg-gray-800/50 border border-gray-700 rounded-lg overflow-hidden">
+    <div *ngIf="!loading()" class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
       <div class="overflow-x-auto max-h-[calc(100vh-350px)] overflow-y-auto">
-        <div class="w-full text-xs">
+        <div class="w-full text-sm">
           <!-- Header Row using Grid -->
-          <div class="bg-gray-900/50 border-b border-gray-700 sticky top-0 z-10 grid gap-0" [style.gridTemplateColumns]="'280px repeat(' + platformRoles().length + ', 120px)'">
-            <div class="text-left px-3 py-2 text-gray-400 font-semibold whitespace-nowrap sticky left-0 bg-gray-900/90 border-r border-gray-700">
+          <div class="bg-gray-100 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 grid gap-0" [style.gridTemplateColumns]="'280px repeat(' + platformRoles().length + ', 120px)'">
+            <div class="text-left px-4 py-3 text-gray-700 dark:text-gray-300 font-semibold whitespace-nowrap sticky left-0 bg-gray-100 dark:bg-gray-900/80 border-r border-gray-200 dark:border-gray-700">
               <div class="flex flex-col min-w-[280px]">
-                <span class="text-white">Menu / Navigation</span>
-                <span class="text-gray-500 font-normal text-xs">{{ allMenus().length }} total menus</span>
+                <span class="text-gray-900 dark:text-white font-semibold">Menu / Navigation</span>
+                <span class="text-gray-600 dark:text-gray-400 font-normal text-xs">{{ allMenus().length }} total menus</span>
               </div>
             </div>
             <ng-container *ngFor="let role of platformRoles()">
-              <div class="text-left px-3 py-2 text-gray-400 font-semibold min-w-[120px] border-l border-gray-700"
-                   [ngClass]="{'bg-gray-800/70': isProtectedRole(role.name), 'bg-gray-900/50': !isProtectedRole(role.name)}">
+              <div class="text-left px-4 py-3 text-gray-700 dark:text-gray-300 font-semibold min-w-[120px] border-l border-gray-200 dark:border-gray-700"
+                   [ngClass]="{'bg-purple-50 dark:bg-purple-900/20': isProtectedRole(role.name), 'bg-gray-100 dark:bg-gray-900/50': !isProtectedRole(role.name)}">
                 <div class="flex items-start justify-between gap-2">
                   <div class="flex flex-col">
-                    <span class="text-white text-xs">{{ role.name }}</span>
-                    <span class="text-gray-500 font-normal text-xs">{{ getRoleMenuCount(role.id) }} menus</span>
+                    <span class="text-gray-900 dark:text-white text-sm font-semibold">{{ role.name }}</span>
+                    <span class="text-gray-600 dark:text-gray-400 font-normal text-xs">{{ getRoleMenuCount(role.id) }} menus</span>
                   </div>
                   <button 
                     *ngIf="!isProtectedRole(role.name)"
                     (click)="toggleAllMenusForRole(role.id)"
-                    class="text-gray-400 hover:text-purple-400 text-base leading-none"
+                    class="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 text-lg leading-none"
                     title="Toggle all menus">
-                    {{ areAllMenusEnabledForRole(role.id) ? '☑' : '☐' }}
+                    {{ areAllMenusEnabledForRole(role.id) ? '☑️' : '☐' }}
                   </button>
                 </div>
               </div>
@@ -167,12 +167,12 @@
           <!-- Menu Rows Grouped by Scope -->
           <ng-container *ngFor="let group of getMenuGroups()">
             <!-- Scope Header Row -->
-            <div class="bg-gray-800 border-b border-gray-700 grid gap-0" [style.gridTemplateColumns]="'280px repeat(' + platformRoles().length + ', 120px)'">
-              <div class="px-3 py-2 col-span-9999">
+            <div class="bg-gray-50 dark:bg-gray-800/30 border-b border-gray-200 dark:border-gray-700 grid gap-0" [style.gridTemplateColumns]="'280px repeat(' + platformRoles().length + ', 120px)'">
+              <div class="px-4 py-3 col-span-9999">
                 <div class="flex items-center gap-2">
-                  <span class="text-base">{{ getScopeIcon(group.scope) }}</span>
-                  <span class="text-white font-semibold text-sm">{{ group.scope | titlecase }} Menus</span>
-                  <span class="px-2 py-0.5 bg-purple-600/20 text-purple-300 rounded text-xs">
+                  <span class="text-lg">{{ getScopeIcon(group.scope) }}</span>
+                  <span class="text-gray-900 dark:text-white font-semibold">{{ group.scope | titlecase }} Menus</span>
+                  <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded text-xs font-medium">
                     {{ group.menus.length }}
                   </span>
                 </div>
@@ -181,26 +181,26 @@
 
             <!-- Individual Menu Rows -->
             <ng-container *ngFor="let menu of group.menus">
-              <div class="border-b border-gray-700/50 hover:bg-gray-800/30 transition grid gap-0"
+              <div class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/20 transition grid gap-0"
                    [style.gridTemplateColumns]="'280px repeat(' + platformRoles().length + ', 120px)'"
-                   [ngClass]="{'bg-yellow-900/10': isParentMenu(menu.id), 'bg-blue-900/10': isChildMenu(menu.id)}">
-                <div class="px-3 py-2 sticky left-0 bg-gray-800/90 border-r border-gray-700">
+                   [ngClass]="{'bg-yellow-50 dark:bg-yellow-900/10': isParentMenu(menu.id), 'bg-blue-50 dark:bg-blue-900/10': isChildMenu(menu.id)}">
+                <div class="px-4 py-3 sticky left-0 bg-white dark:bg-gray-800/50 border-r border-gray-200 dark:border-gray-700">
                   <div class="flex items-start gap-2 min-w-[280px]">
-                    <span class="text-sm flex-shrink-0">{{ isParentMenu(menu.id) ? '📁' : '📄' }}</span>
+                    <span class="text-base flex-shrink-0">{{ isParentMenu(menu.id) ? '📁' : '📄' }}</span>
                     <div class="flex flex-col flex-1 min-w-0">
                       <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-white text-xs">{{ menu.name }}</span>
-                        <span *ngIf="menu.icon" class="text-sm">{{ menu.icon }}</span>
+                        <span class="text-gray-900 dark:text-white text-sm font-medium">{{ menu.name }}</span>
+                        <span *ngIf="menu.icon" class="text-base">{{ menu.icon }}</span>
                       </div>
-                      <span class="text-gray-400 text-xs mt-0.5 line-clamp-2">{{ menu.route }}</span>
+                      <span class="text-gray-600 dark:text-gray-400 text-xs mt-1 line-clamp-2">{{ menu.route }}</span>
                     </div>
                   </div>
                 </div>
 
                 <!-- Checkbox for each role -->
                 <ng-container *ngFor="let role of platformRoles()">
-                  <div class="px-3 py-2 text-center border-l border-gray-700/50"
-                       [ngClass]="{'bg-gray-800/70': isProtectedRole(role.name)}">
+                  <div class="px-4 py-3 text-center border-l border-gray-200 dark:border-gray-700"
+                       [ngClass]="{'bg-purple-50 dark:bg-purple-900/10': isProtectedRole(role.name)}">
                     <label class="inline-flex items-center cursor-pointer"
                            [ngClass]="isProtectedRole(role.name) ? 'cursor-not-allowed' : ''">
                       <input
@@ -208,7 +208,7 @@
                         [checked]="hasMenu(role.id, menu.id)"
                         (change)="toggleMenu(role.id, menu.id)"
                         [disabled]="isProtectedRole(role.name)"
-                        class="w-4 h-4 text-purple-600 bg-gray-700 border-gray-600 rounded focus:ring-purple-500 focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        class="w-5 h-5 text-purple-600 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded focus:ring-purple-600 dark:focus:ring-purple-400 focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         [title]="isProtectedRole(role.name) ? 'Protected role - all menus assigned' : 'Toggle menu access'"
                       />
                     </label>
