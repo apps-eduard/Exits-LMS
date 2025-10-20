@@ -1,0 +1,512 @@
+import { Component, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AuthService } from '../../../core/services/auth.service';
+
+@Component({
+  selector: 'app-tenant-profile',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
+  template: `
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-4 lg:p-6 max-w-6xl">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-1">My Profile</h1>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Manage your account and security settings</p>
+      </div>
+
+      <!-- Message Display -->
+      <div *ngIf="message()" 
+           [ngClass]="{
+             'bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-400': messageType() === 'success',
+             'bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-400': messageType() === 'error'
+           }"
+           class="p-4 rounded-lg text-sm mb-6">
+        {{ message() }}
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="flex gap-2 border-b border-gray-200 dark:border-gray-700 mb-8">
+        <button 
+          (click)="activeTab.set('profile')"
+          type="button"
+          class="px-4 py-3 font-medium text-sm transition-colors border-b-2 -mb-0.5"
+          [ngClass]="{
+            'border-purple-500 text-purple-600 dark:text-purple-400': activeTab() === 'profile',
+            'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300': activeTab() !== 'profile'
+          }">
+          👤 Profile Information
+        </button>
+        <button 
+          (click)="activeTab.set('password')"
+          type="button"
+          class="px-4 py-3 font-medium text-sm transition-colors border-b-2 -mb-0.5"
+          [ngClass]="{
+            'border-purple-500 text-purple-600 dark:text-purple-400': activeTab() === 'password',
+            'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300': activeTab() !== 'password'
+          }">
+          🔐 Change Password
+        </button>
+      </div>
+
+      <!-- Profile Information Tab -->
+      <div *ngIf="activeTab() === 'profile'" class="space-y-6">
+        <form [formGroup]="profileForm" (ngSubmit)="updateProfile()" class="space-y-6">
+          
+          <!-- Organization Details Section -->
+          <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <span>🏢</span> Organization Details
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Tenant Name -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tenant Name <span class="text-red-500 dark:text-red-400">*</span></label>
+                <input
+                  type="text"
+                  formControlName="tenantName"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                  placeholder="Organization name"
+                />
+                <div *ngIf="profileForm.get('tenantName')?.invalid && profileForm.get('tenantName')?.touched" 
+                     class="text-red-600 dark:text-red-400 text-xs mt-1">
+                  Organization name is required
+                </div>
+              </div>
+
+              <!-- Subdomain -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subdomain <span class="text-red-500 dark:text-red-400">*</span></label>
+                <div class="flex gap-2">
+                  <input
+                    type="text"
+                    formControlName="subdomain"
+                    class="flex-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-l-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                    placeholder="subdomain"
+                  />
+                  <input
+                    type="text"
+                    disabled
+                    value=".exits-lms.com"
+                    class="px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-r-lg text-gray-600 dark:text-gray-400 cursor-not-allowed"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Information Section -->
+          <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <span>👤</span> Contact Information
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- First Name -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">First Name <span class="text-red-500 dark:text-red-400">*</span></label>
+                <input
+                  type="text"
+                  formControlName="firstName"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                  placeholder="First name"
+                />
+                <div *ngIf="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched" 
+                     class="text-red-600 dark:text-red-400 text-xs mt-1">
+                  First name is required
+                </div>
+              </div>
+
+              <!-- Last Name -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Last Name <span class="text-red-500 dark:text-red-400">*</span></label>
+                <input
+                  type="text"
+                  formControlName="lastName"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                  placeholder="Last name"
+                />
+                <div *ngIf="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched" 
+                     class="text-red-600 dark:text-red-400 text-xs mt-1">
+                  Last name is required
+                </div>
+              </div>
+
+              <!-- Email -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email <span class="text-red-500 dark:text-red-400">*</span></label>
+                <input
+                  type="email"
+                  formControlName="email"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                  placeholder="contact@company.com"
+                />
+                <div *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched" 
+                     class="text-red-600 dark:text-red-400 text-xs mt-1">
+                  Valid email is required
+                </div>
+              </div>
+
+              <!-- Phone -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone</label>
+                <input
+                  type="tel"
+                  formControlName="phone"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                  placeholder="+63 (2) XXXX-XXXX"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Address Section -->
+          <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <span>📍</span> Address (Philippine Format)
+            </h3>
+            <div class="space-y-6">
+              <!-- Street Address -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Street Address</label>
+                <input
+                  type="text"
+                  formControlName="streetAddress"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                  placeholder="123 Main Street"
+                />
+              </div>
+
+              <!-- Barangay and City -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Barangay</label>
+                  <input
+                    type="text"
+                    formControlName="barangay"
+                    class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                    placeholder="Barangay name"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">City/Municipality <span class="text-red-500 dark:text-red-400">*</span></label>
+                  <input
+                    type="text"
+                    formControlName="city"
+                    class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                    placeholder="Manila"
+                  />
+                </div>
+              </div>
+
+              <!-- Province and Region -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Province <span class="text-red-500 dark:text-red-400">*</span></label>
+                  <select
+                    formControlName="province"
+                    class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                  >
+                    <option value="">Select Province</option>
+                    <option value="NCR">NCR (National Capital Region)</option>
+                    <option value="Cavite">Cavite</option>
+                    <option value="Laguna">Laguna</option>
+                    <option value="Rizal">Rizal</option>
+                    <option value="Bulacan">Bulacan</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Region</label>
+                  <input
+                    type="text"
+                    formControlName="region"
+                    class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                    placeholder="NCR, CAR, etc."
+                  />
+                </div>
+              </div>
+
+              <!-- Postal Code and Country -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Postal Code</label>
+                  <input
+                    type="text"
+                    formControlName="postalCode"
+                    class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                    placeholder="1000"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Country</label>
+                  <input
+                    type="text"
+                    disabled
+                    value="Philippines"
+                    class="w-full px-4 py-2.5 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 cursor-not-allowed"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Subscription & Status Section -->
+          <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <span>💳</span> Subscription & Status
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Subscription Plan -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subscription Plan <span class="text-red-500 dark:text-red-400">*</span></label>
+                <select
+                  formControlName="subscriptionPlan"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                >
+                  <option value="">Select Plan</option>
+                  <option value="trial">Trial</option>
+                  <option value="starter">Starter</option>
+                  <option value="professional">Professional</option>
+                  <option value="enterprise">Enterprise</option>
+                </select>
+              </div>
+
+              <!-- Status -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status <span class="text-red-500 dark:text-red-400">*</span></label>
+                <select
+                  formControlName="status"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                >
+                  <option value="">Select Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Save Button -->
+          <div class="flex justify-end gap-3 pt-4">
+            <button
+              type="button"
+              (click)="resetForm()"
+              class="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              [disabled]="!profileForm.valid || savingProfile()"
+              class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+            >
+              {{ savingProfile() ? '⏳ Updating...' : '💾 Update Profile' }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Change Password Tab -->
+      <div *ngIf="activeTab() === 'password'" class="space-y-6">
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 text-sm text-blue-800 dark:text-blue-300">
+          <div class="flex gap-3">
+            <div class="flex-shrink-0">ℹ️</div>
+            <div>After changing your password, you will need to log in again with your new password.</div>
+          </div>
+        </div>
+
+        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="space-y-6">
+          <!-- Password Change Section -->
+          <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">🔐 Change Password</h3>
+            <div class="space-y-4">
+              <!-- Current Password -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Current Password <span class="text-red-500 dark:text-red-400">*</span></label>
+                <input
+                  type="password"
+                  formControlName="currentPassword"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                  placeholder="Enter current password"
+                />
+                <div *ngIf="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched" 
+                     class="text-red-600 dark:text-red-400 text-xs mt-1">
+                  Current password is required
+                </div>
+              </div>
+
+              <!-- New Password -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">New Password <span class="text-red-500 dark:text-red-400">*</span></label>
+                <input
+                  type="password"
+                  formControlName="newPassword"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                  placeholder="Enter new password (min 8 characters)"
+                />
+                <div *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched" 
+                     class="text-red-600 dark:text-red-400 text-xs mt-1">
+                  Password must be at least 8 characters
+                </div>
+              </div>
+
+              <!-- Confirm Password -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirm New Password <span class="text-red-500 dark:text-red-400">*</span></label>
+                <input
+                  type="password"
+                  formControlName="confirmPassword"
+                  class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 transition-colors"
+                  placeholder="Confirm new password"
+                />
+                <div *ngIf="passwordForm.hasError('mismatch') && passwordForm.get('confirmPassword')?.touched" 
+                     class="text-red-600 dark:text-red-400 text-xs mt-1">
+                  Passwords do not match
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Change Password Button -->
+          <div class="flex justify-end gap-3 pt-4">
+            <button
+              type="button"
+              (click)="resetPasswordForm()"
+              class="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              [disabled]="!passwordForm.valid || changingPassword()"
+              class="px-6 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+            >
+              {{ changingPassword() ? '⏳ Changing...' : '🔐 Change Password' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `,
+  styles: []
+})
+export class TenantProfileComponent implements OnInit {
+  profileForm: FormGroup;
+  passwordForm: FormGroup;
+  savingProfile = signal(false);
+  changingPassword = signal(false);
+  message = signal('');
+  messageType = signal<'success' | 'error'>('success');
+  activeTab = signal<'profile' | 'password'>('profile');
+
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService
+  ) {
+    this.profileForm = this.fb.group({
+      tenantName: ['', [Validators.required, Validators.minLength(2)]],
+      subdomain: ['', [Validators.required, Validators.minLength(3)]],
+      firstName: ['', [Validators.required, Validators.minLength(2)]],
+      lastName: ['', [Validators.required, Validators.minLength(2)]],
+      email: [{ value: '', disabled: true }, Validators.required],
+      phone: [''],
+      streetAddress: [''],
+      barangay: [''],
+      city: ['', Validators.required],
+      province: ['', Validators.required],
+      region: [''],
+      postalCode: [''],
+      subscriptionPlan: ['', Validators.required],
+      status: ['', Validators.required]
+    });
+
+    this.passwordForm = this.fb.group({
+      currentPassword: ['', Validators.required],
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', Validators.required]
+    }, { validators: this.passwordMatchValidator });
+  }
+
+  ngOnInit(): void {
+    this.loadUserProfile();
+  }
+
+  loadUserProfile(): void {
+    const user = this.authService.getCurrentUser() as any;
+    if (user) {
+      this.profileForm.patchValue({
+        tenantName: user.tenantName || '',
+        subdomain: user.subdomain || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email,
+        phone: user.phone || '',
+        streetAddress: user.streetAddress || '',
+        barangay: user.barangay || '',
+        city: user.city || '',
+        province: user.province || '',
+        region: user.region || '',
+        postalCode: user.postalCode || '',
+        subscriptionPlan: user.subscriptionPlan || 'trial',
+        status: user.status || 'active'
+      });
+    }
+  }
+
+  resetForm(): void {
+    this.loadUserProfile();
+  }
+
+  resetPasswordForm(): void {
+    this.passwordForm.reset();
+    this.message.set('');
+  }
+
+  updateProfile(): void {
+    if (this.profileForm.invalid) return;
+
+    this.savingProfile.set(true);
+    this.message.set('');
+    const formValue = this.profileForm.getRawValue();
+
+    // Simulate API call
+    setTimeout(() => {
+      console.log('✅ Profile would be updated with:', {
+        firstName: formValue.firstName,
+        lastName: formValue.lastName,
+        phone: formValue.phone
+      });
+      this.message.set('✓ Profile updated successfully!');
+      this.messageType.set('success');
+      this.savingProfile.set(false);
+      setTimeout(() => this.message.set(''), 3000);
+    }, 500);
+  }
+
+  changePassword(): void {
+    if (this.passwordForm.invalid) return;
+
+    this.changingPassword.set(true);
+    this.message.set('');
+
+    // Simulate API call
+    setTimeout(() => {
+      console.log('✅ Password would be changed');
+      this.message.set('✓ Password changed successfully! Please log in again.');
+      this.messageType.set('success');
+      this.passwordForm.reset();
+      this.changingPassword.set(false);
+      setTimeout(() => this.message.set(''), 3000);
+    }, 500);
+  }
+
+  passwordMatchValidator(group: FormGroup): { [key: string]: boolean } | null {
+    const newPassword = group.get('newPassword')?.value;
+    const confirmPassword = group.get('confirmPassword')?.value;
+    
+    if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+      return { mismatch: true };
+    }
+    return null;
+  }
+}

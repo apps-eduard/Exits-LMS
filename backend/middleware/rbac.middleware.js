@@ -1,7 +1,7 @@
 const db = require('../config/database');
 
 // Protected system roles that automatically have all permissions
-const PROTECTED_ROLES = ['Super Admin', 'Support Staff', 'Developer'];
+const PROTECTED_ROLES = ['Super Admin'];
 
 const checkPermission = (requiredPermission) => {
   return async (req, res, next) => {

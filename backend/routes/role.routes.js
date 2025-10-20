@@ -11,6 +11,9 @@ router.use(authMiddleware);
 // Get all permissions (accessible directly)
 router.get('/permissions', roleController.getAllPermissions);
 
+// Get all menus for all roles (must come before /:id route)
+router.get('/menus/all', roleMenusController.getAllRoleMenus);
+
 // Get all roles
 router.get('/', roleController.getAllRoles);
 

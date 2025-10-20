@@ -393,6 +393,52 @@ export class MenuService {
   }
 
   /**
+   * Get dynamic platform menu filtered by user's role assignments
+   */
+  getDynamicPlatformMenuForUser(): Observable<NavSection[]> {
+    console.log('[MENU_SERVICE] 📋 Loading user-specific platform menus...');
+    
+    return this.http.get<any>(`${environment.apiUrl}/users/me/menus`).pipe(
+      map((response) => {
+        console.log('[MENU_SERVICE] 📊 API Response:', {
+          success: response.success,
+          menuCount: response.count,
+          menus: response.menus
+        });
+
+        if (!response.success || !response.menus) {
+          console.warn('[MENU_SERVICE] ⚠️ No menus returned from API');
+          return [];
+        }
+
+        // Backend returns menus already in tree structure with children
+        const menus: Menu[] = response.menus;
+        console.log('[MENU_SERVICE] 📊 Converting user menus to nav sections:', {
+          rootMenus: menus.length,
+          totalMenus: response.count
+        });
+
+        const sections = this.convertMenuTreeToNavSections(menus);
+        console.log('[MENU_SERVICE] ✅ User menu sections:', {
+          sections: sections.length,
+          totalItems: sections.reduce((sum, s) => sum + s.items.length, 0)
+        });
+        
+        // Cache the result
+        this.platformMenuCache.set(sections);
+        this.platformMenuSubject.next(sections);
+        
+        return sections;
+      }),
+      catchError(error => {
+        console.error('[MENU_SERVICE] ❌ Failed to load user menus:', error);
+        console.log('[MENU_SERVICE] 📦 Returning empty menu (no fallback for user-specific)');
+        return of([]);
+      })
+    );
+  }
+
+  /**
    * Get dynamic tenant menu from database
    */
   getDynamicTenantMenu(): Observable<NavSection[]> {
@@ -418,6 +464,52 @@ export class MenuService {
         this.tenantMenuCache.set(fallback);
         this.tenantMenuSubject.next(fallback);
         return of(fallback);
+      })
+    );
+  }
+
+  /**
+   * Get dynamic tenant menu filtered by user's role assignments
+   */
+  getDynamicTenantMenuForUser(): Observable<NavSection[]> {
+    console.log('[MENU_SERVICE] 📋 Loading user-specific tenant menus...');
+    
+    return this.http.get<any>(`${environment.apiUrl}/users/me/menus`).pipe(
+      map((response) => {
+        console.log('[MENU_SERVICE] 📊 API Response:', {
+          success: response.success,
+          menuCount: response.count,
+          menus: response.menus
+        });
+
+        if (!response.success || !response.menus) {
+          console.warn('[MENU_SERVICE] ⚠️ No menus returned from API');
+          return [];
+        }
+
+        // Filter menus for tenant scope
+        const tenantMenus: Menu[] = response.menus.filter((m: Menu) => m.scope === 'tenant');
+        console.log('[MENU_SERVICE] 📊 Converting user tenant menus to nav sections:', {
+          rootMenus: tenantMenus.length,
+          totalMenus: response.count
+        });
+
+        const sections = this.convertMenuTreeToNavSections(tenantMenus);
+        console.log('[MENU_SERVICE] ✅ User tenant menu sections:', {
+          sections: sections.length,
+          totalItems: sections.reduce((sum, s) => sum + s.items.length, 0)
+        });
+        
+        // Cache the result
+        this.tenantMenuCache.set(sections);
+        this.tenantMenuSubject.next(sections);
+        
+        return sections;
+      }),
+      catchError(error => {
+        console.error('[MENU_SERVICE] ❌ Failed to load user tenant menus:', error);
+        console.log('[MENU_SERVICE] 📦 Returning empty menu (no fallback for user-specific)');
+        return of([]);
       })
     );
   }

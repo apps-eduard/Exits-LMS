@@ -65,7 +65,7 @@ export class SystemRolesComponent implements OnInit {
   roleForm: FormGroup;
 
   // Protected system roles that cannot be deleted
-  private readonly protectedRoles = ['Super Admin', 'Support Staff', 'Developer'];
+  private readonly protectedRoles = ['Super Admin'];
 
   constructor(
     private fb: FormBuilder,

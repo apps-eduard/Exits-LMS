@@ -78,7 +78,7 @@ export class TenantLayoutComponent implements OnInit {
     this.loadingMenu.set(true);
     this.menuError.set(null);
 
-    this.menuService.getDynamicTenantMenu().subscribe({
+    this.menuService.getDynamicTenantMenuForUser().subscribe({
       next: (menu) => {
         this.navSections.set(menu);
         this.loadingMenu.set(false);
@@ -89,18 +89,21 @@ export class TenantLayoutComponent implements OnInit {
       },
       error: (error) => {
         console.error('Failed to load tenant menus:', error);
-        this.menuError.set('Failed to load menu. Using fallback.');
+        this.menuError.set('Failed to load menu.');
         this.loadingMenu.set(false);
         
-        // Use fallback menu
-        const fallback = this.menuService.getFallbackTenantMenu();
-        this.navSections.set(fallback);
-        // Expand first section by default
-        if (fallback.length > 0) {
-          this.expandedSections.set(new Set([fallback[0].title]));
-        }
+        // Show empty sidebar (no menus assigned)
+        this.navSections.set([]);
       }
     });
+  }
+
+  /**
+   * Refresh menus - useful after menu assignments change
+   */
+  refreshMenus(): void {
+    console.log('[TENANT_LAYOUT] 🔄 Refreshing menus...');
+    this.loadMenus();
   }
 
   toggleSidebar(): void {

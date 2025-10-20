@@ -48,7 +48,7 @@ export class PermissionMatrixComponent implements OnInit {
 
   roleForm: FormGroup;
 
-  private readonly protectedRoles = ["Super Admin", "Support Staff", "Developer"];
+  private readonly protectedRoles = ["Super Admin"];
 
   constructor(
     private rbacService: RbacService,
@@ -207,7 +207,7 @@ export class PermissionMatrixComponent implements OnInit {
     });
 
     // Fetch role-menu assignments from database
-    this.http.get<any>('/api/roles/menus').subscribe({
+    this.http.get<any>('/api/roles/menus/all').subscribe({
       next: (response) => {
         if (response && response.roleMenus) {
           response.roleMenus.forEach((assignment: any) => {

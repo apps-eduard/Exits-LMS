@@ -9,18 +9,14 @@ interface Stat {
   change: string;
   changeType: 'increase' | 'decrease' | 'neutral';
   icon: string;
-  color: 'blue' | 'purple' | 'green' | 'orange';
-  description?: string;
 }
 
-interface TenantItem {
+interface SystemUser {
   id: string;
   name: string;
-  email?: string;
+  email: string;
   status: string;
-  role?: string;
-  createdAt?: string;
-  color: string;
+  role: string;
 }
 
 @Component({
@@ -32,48 +28,15 @@ interface TenantItem {
 })
 export class SuperAdminDashboardComponent implements OnInit {
   readonly stats = signal<Stat[]>([
-    {
-      label: 'System Users',
-      value: '12',
-      change: '+3%',
-      changeType: 'increase',
-      icon: '👥',
-      color: 'blue',
-      description: 'Active system admins'
-    },
-    {
-      label: 'Total Tenants',
-      value: '48',
-      change: '+12%',
-      changeType: 'increase',
-      icon: '🏢',
-      color: 'purple',
-      description: 'Active businesses'
-    },
-    {
-      label: 'Active Sessions',
-      value: '35',
-      change: '+18%',
-      changeType: 'increase',
-      icon: '🔐',
-      color: 'green',
-      description: 'Logged in users'
-    },
-    {
-      label: 'Audit Events',
-      value: '2,456',
-      change: '+22%',
-      changeType: 'increase',
-      icon: '�',
-      color: 'orange',
-      description: 'This month'
-    }
+    { label: 'System Users', value: '0', change: '+0%', changeType: 'neutral', icon: '👥' },
+    { label: 'Total Tenants', value: '0', change: '+0%', changeType: 'neutral', icon: '🏢' },
+    { label: 'Active Sessions', value: '0', change: '+0%', changeType: 'neutral', icon: '🔐' },
+    { label: 'Audit Events', value: '0', change: '+0%', changeType: 'neutral', icon: '📋' }
   ]);
   
-  readonly recentTenants = signal<TenantItem[]>([]);
+  readonly systemUsers = signal<SystemUser[]>([]);
   readonly loading = signal(true);
-
-  readonly colors = ['blue', 'purple', 'green', 'orange', 'pink'];
+  readonly error = signal<string | null>(null);
 
   constructor(private userService: UserService) {}
 
@@ -81,63 +44,76 @@ export class SuperAdminDashboardComponent implements OnInit {
     this.loadDashboardData();
   }
 
-  loadDashboardData(): void {
+  private loadDashboardData(): void {
     this.loading.set(true);
+    this.error.set(null);
     
-    // Fetch system users
     this.userService.getAllUsers().subscribe({
-      next: (response: any) => {
-        if (response.success || Array.isArray(response)) {
-          const users = Array.isArray(response) ? response : response.users || response.data || [];
-          
-          // Update stats with user count
-          this.stats.update(s => [
-            { ...s[0], value: users.length },
-            { ...s[1], value: users.length > 0 ? Math.ceil(users.length / 2) : 0 },
-            { ...s[2], value: users.length > 0 ? Math.ceil(users.length * 0.7) : 0 },
-            { ...s[3], value: users.length > 0 ? users.length * 50 : 0 }
-          ]);
-          
-          // Update recent users (limit to 8)
-          const formatted = users.slice(0, 8).map((u: any, i: number) => ({
-            id: u.id,
-            name: `${u.first_name || ''} ${u.last_name || ''}`.trim() || u.email,
-            email: u.email,
-            status: u.is_active ? 'active' : 'inactive',
-            role: u.role_name || 'System Admin',
-            createdAt: u.created_at,
-            color: this.colors[i % this.colors.length]
-          }));
-          
-          this.recentTenants.set(formatted);
-        }
-        this.loading.set(false);
-      },
-      error: (error: any) => {
-        console.error('Error loading dashboard data:', error);
-        // Fallback: Create sample data for demo
-        const sampleUsers = [
-          { id: '1', name: 'John Admin', email: 'john@admin.local', status: 'active', role: 'System Admin', color: 'blue' },
-          { id: '2', name: 'Jane Smith', email: 'jane@admin.local', status: 'active', role: 'System Admin', color: 'purple' },
-          { id: '3', name: 'Bob Manager', email: 'bob@admin.local', status: 'active', role: 'System Admin', color: 'green' }
-        ];
-        this.recentTenants.set(sampleUsers);
-        this.loading.set(false);
-      }
+      next: (response: any) => this.handleUsersResponse(response),
+      error: (error: any) => this.handleLoadError(error)
     });
   }
 
-  getStatusBadgeClass(status: string): string {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300';
-      case 'inactive':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300';
-      case 'suspended':
-        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300';
-      default:
-        return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300';
+  private handleUsersResponse(response: any): void {
+    try {
+      const users = this.extractUsers(response);
+      
+      if (users.length > 0) {
+        this.updateStats(users.length);
+        this.systemUsers.set(this.formatUsers(users));
+      }
+    } catch (error) {
+      console.error('Error processing dashboard data:', error);
+      this.error.set('Failed to load dashboard data');
+    } finally {
+      this.loading.set(false);
     }
+  }
+
+  private handleLoadError(error: any): void {
+    console.error('Error loading dashboard data:', error);
+    this.error.set('Unable to fetch dashboard data');
+    this.loading.set(false);
+  }
+
+  private extractUsers(response: any): any[] {
+    if (Array.isArray(response)) {
+      return response;
+    }
+    return response?.users || response?.data || [];
+  }
+
+  private updateStats(userCount: number): void {
+    this.stats.set([
+      { label: 'System Users', value: userCount, change: '+0%', changeType: 'neutral', icon: '👥' },
+      { label: 'Total Tenants', value: Math.ceil(userCount / 2), change: '+0%', changeType: 'neutral', icon: '🏢' },
+      { label: 'Active Sessions', value: Math.ceil(userCount * 0.7), change: '+0%', changeType: 'neutral', icon: '🔐' },
+      { label: 'Audit Events', value: userCount * 50, change: '+0%', changeType: 'neutral', icon: '📋' }
+    ]);
+  }
+
+  private formatUsers(users: any[]): SystemUser[] {
+    return users.slice(0, 8).map(u => ({
+      id: u.id,
+      name: this.formatUserName(u),
+      email: u.email,
+      status: u.is_active ? 'active' : 'inactive',
+      role: u.role_name || 'System Admin'
+    }));
+  }
+
+  private formatUserName(user: any): string {
+    const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+    return fullName || user.email;
+  }
+
+  getStatusBadgeClass(status: string): string {
+    const badges: Record<string, string> = {
+      active: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
+      inactive: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300',
+      suspended: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300'
+    };
+    return badges[status] || 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300';
   }
 
   getInitials(name: string): string {

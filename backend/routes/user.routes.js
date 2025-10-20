@@ -3,6 +3,7 @@ const router = express.Router();
 const userController = require('../controllers/user.controller');
 const auditController = require('../controllers/audit.controller');
 const systemLogsController = require('../controllers/system-logs.controller');
+const roleMenusController = require('../controllers/role-menus.controller');
 const authenticate = require('../middleware/auth.middleware');
 const { checkScope, checkPermission } = require('../middleware/rbac.middleware');
 const tenantIsolation = require('../middleware/tenant-isolation.middleware');
@@ -28,6 +29,9 @@ router.get('/audit', checkScope('platform'), checkPermission('view_audit_logs'),
 // System logs route (must be before /:id to avoid route collision)
 router.get('/system-logs', checkScope('platform'), checkPermission('view_audit_logs'), systemLogsController.getSystemLogs);
 router.get('/system-logs/summary', checkScope('platform'), checkPermission('view_audit_logs'), systemLogsController.getSystemLogsSummary);
+
+// Get current user's accessible menus (must be before /:id to avoid route collision)
+router.get('/me/menus', roleMenusController.getUserMenus);
 
 router.get('/:id', checkScope('platform'), checkPermission('manage_users'), userController.getUserById);
 router.put('/:id', checkScope('platform'), checkPermission('manage_users'), userController.updateUser);

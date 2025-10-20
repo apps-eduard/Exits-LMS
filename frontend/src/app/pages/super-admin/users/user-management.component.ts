@@ -137,11 +137,17 @@ export class UserManagementComponent implements OnInit {
 
   getRoleColor(role: string): string {
     const colors: { [key: string]: string } = {
-      'Super Admin': 'bg-red-900/30 text-red-300',
-      'Support Staff': 'bg-blue-900/30 text-blue-300',
-      'Developer': 'bg-purple-900/30 text-purple-300'
+      'Super Admin': 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300',
+      'Support Staff': 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
+      'Developer': 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
     };
-    return colors[role] || 'bg-gray-700/30 text-gray-300';
+    return colors[role] || 'bg-gray-100 dark:bg-gray-700/30 text-gray-700 dark:text-gray-300';
+  }
+
+  getStatusColor(isActive: boolean): string {
+    return isActive 
+      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+      : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
   }
 
   getRoleIcon(role: string): string {

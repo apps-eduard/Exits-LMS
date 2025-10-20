@@ -50,7 +50,7 @@ export class AppComponent implements OnInit {
       html.classList.remove('dark');
       body.classList.remove('dark');
       html.style.colorScheme = 'light';
-      body.style.backgroundColor = '#f9fafb';
+      body.style.backgroundColor = '#ffffff';
       body.style.color = '#111827';
       localStorage.setItem('theme', 'light');
     }

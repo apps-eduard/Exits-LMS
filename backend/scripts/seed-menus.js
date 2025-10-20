@@ -10,51 +10,48 @@ const { v4: uuidv4 } = require('uuid');
 // Complete menu structure with all enterprise features
 const MENU_DATA = {
   platform: [
-    // Overview Section (1-3)
+    // Overview Section (1)
     { name: 'Dashboard', slug: 'dashboard', icon: '🏠', route: '/super-admin/dashboard', order: 1, parent: null },
-    { name: 'Audit Logs', slug: 'audit-logs', icon: '📋', route: '/super-admin/audit-logs', order: 2, parent: null },
-    { name: 'System Logs', slug: 'system-logs', icon: '📝', route: '/super-admin/system-logs', order: 3, parent: null },
     
-    // Tenant Management Section (4-7)
-    { name: 'All Tenants', slug: 'tenants', icon: '🏢', route: '/super-admin/tenants', order: 4, parent: null },
-    { name: 'Active Tenants', slug: 'active-tenants', icon: '✅', route: '/super-admin/tenants?status=active', order: 5, parent: 'tenants' },
-    { name: 'Suspended Tenants', slug: 'suspended-tenants', icon: '⏸️', route: '/super-admin/tenants?status=suspended', order: 6, parent: 'tenants' },
-    { name: 'Create Tenant', slug: 'create-tenant', icon: '➕', route: '/super-admin/tenants/create', order: 7, parent: 'tenants' },
+    // Tenant Management Section (2-5)
+    { name: 'Tenants', slug: 'tenants', icon: '🏢', route: '/super-admin/tenants', order: 2, parent: null },
+    { name: 'Active Tenants', slug: 'active-tenants', icon: '✅', route: '/super-admin/tenants?status=active', order: 3, parent: 'tenants' },
+    { name: 'Suspended Tenants', slug: 'suspended-tenants', icon: '⏸️', route: '/super-admin/tenants?status=suspended', order: 4, parent: 'tenants' },
+    { name: 'Create Tenant', slug: 'create-tenant', icon: '➕', route: '/super-admin/tenants/create', order: 5, parent: 'tenants' },
     
-    // Analytics & Reports Section (8-11)
-    { name: 'System Analytics', slug: 'analytics', icon: '📈', route: '/super-admin/analytics', order: 8, parent: null },
-    { name: 'Revenue Reports', slug: 'revenue-reports', icon: '💰', route: '/super-admin/reports/revenue', order: 9, parent: 'analytics' },
-    { name: 'User Activity Reports', slug: 'user-activity-reports', icon: '👥', route: '/super-admin/reports/user-activity', order: 10, parent: 'analytics' },
-    { name: 'Tenant Usage Reports', slug: 'tenant-usage-reports', icon: '🏢', route: '/super-admin/reports/tenant-usage', order: 11, parent: 'analytics' },
+    // Analytics & Reports Section (6-9)
+    { name: 'System Analytics', slug: 'analytics', icon: '📈', route: '/super-admin/analytics', order: 6, parent: null },
+    { name: 'Revenue Reports', slug: 'revenue-reports', icon: '💰', route: '/super-admin/reports/revenue', order: 7, parent: 'analytics' },
+    { name: 'User Activity Reports', slug: 'user-activity-reports', icon: '👥', route: '/super-admin/reports/user-activity', order: 8, parent: 'analytics' },
+    { name: 'Tenant Usage Reports', slug: 'tenant-usage-reports', icon: '🏢', route: '/super-admin/reports/tenant-usage', order: 9, parent: 'analytics' },
     
-    // Billing & Subscriptions Section (12-15)
-    { name: 'All Subscriptions', slug: 'subscriptions', icon: '💳', route: '/super-admin/subscriptions', order: 12, parent: null },
-    { name: 'Subscription Plans', slug: 'plans', icon: '📦', route: '/super-admin/plans', order: 13, parent: 'subscriptions' },
-    { name: 'Invoices', slug: 'invoices', icon: '🧾', route: '/super-admin/invoices', order: 14, parent: 'subscriptions' },
-    { name: 'Payments', slug: 'platform-payments', icon: '💵', route: '/super-admin/payments', order: 15, parent: 'subscriptions' },
+    // Billing & Subscriptions Section (10-13)
+    { name: 'Subscriptions', slug: 'subscriptions', icon: '💳', route: '/super-admin/subscriptions', order: 10, parent: null },
+    { name: 'Subscription Plans', slug: 'plans', icon: '📦', route: '/super-admin/plans', order: 11, parent: 'subscriptions' },
+    { name: 'Invoices', slug: 'invoices', icon: '🧾', route: '/super-admin/invoices', order: 12, parent: 'subscriptions' },
+    { name: 'Payments', slug: 'platform-payments', icon: '💵', route: '/super-admin/payments', order: 13, parent: 'subscriptions' },
     
-    // Notifications Section (16-18)
-    { name: 'System Notifications', slug: 'notifications', icon: '📬', route: '/super-admin/notifications', order: 16, parent: null },
-    { name: 'Alerts', slug: 'alerts', icon: '🔔', route: '/super-admin/alerts', order: 17, parent: 'notifications' },
-    { name: 'Announcements', slug: 'announcements', icon: '📨', route: '/super-admin/announcements', order: 18, parent: 'notifications' },
+    // Notifications Section (14-16)
+    { name: 'Notifications', slug: 'notifications', icon: '📬', route: '/super-admin/notifications', order: 14, parent: null },
+    { name: 'Alerts', slug: 'alerts', icon: '🔔', route: '/super-admin/alerts', order: 15, parent: 'notifications' },
+    { name: 'Announcements', slug: 'announcements', icon: '📨', route: '/super-admin/announcements', order: 16, parent: 'notifications' },
     
-    // System Health Section (19-22)
-    { name: 'Health Check', slug: 'health', icon: '🏥', route: '/super-admin/health', order: 19, parent: null },
-    { name: 'Performance Metrics', slug: 'metrics', icon: '📊', route: '/super-admin/metrics', order: 20, parent: 'health' },
+    // Health and Logs Section (17-21) - Combined Audit Logs and System Logs here
+    { name: 'Health and Logs', slug: 'health', icon: '🏥', route: '/super-admin/health', order: 17, parent: null },
+    { name: 'Audit Logs', slug: 'audit-logs', icon: '�', route: '/super-admin/audit-logs', order: 18, parent: 'health' },
+    { name: 'System Logs', slug: 'system-logs', icon: '�', route: '/super-admin/system-logs', order: 19, parent: 'health' },
+    { name: 'Performance Metrics', slug: 'metrics', icon: '�', route: '/super-admin/metrics', order: 20, parent: 'health' },
     { name: 'Error Logs', slug: 'errors', icon: '🐛', route: '/super-admin/errors', order: 21, parent: 'health' },
-    { name: 'Background Jobs', slug: 'jobs', icon: '🔄', route: '/super-admin/jobs', order: 22, parent: 'health' },
+    { name: 'Background Jobs', slug: 'jobs', icon: '�', route: '/super-admin/jobs', order: 22, parent: 'health' },
     
-    // Settings Section (23-29)
+    // Settings Section (23-26) - Removed System Roles, Menu Management, Email Templates (duplicates)
     { name: 'Settings', slug: 'settings', icon: '⚙️', route: '/super-admin/settings', order: 23, parent: null },
-    { name: 'System Roles', slug: 'roles', icon: '👥', route: '/super-admin/settings/roles', order: 24, parent: 'settings' },
-    { name: 'Menu Management', slug: 'menu-management', icon: '🎨', route: '/super-admin/settings/menus', order: 25, parent: 'settings' },
-    { name: 'Email Templates', slug: 'email-templates', icon: '📧', route: '/super-admin/settings/email-templates', order: 26, parent: 'settings' },
-    { name: 'Email Configuration', slug: 'email-config', icon: '✉️', route: '/super-admin/settings/email-config', order: 27, parent: 'settings' },
-    { name: 'Security Settings', slug: 'security-settings', icon: '🔐', route: '/super-admin/settings/security', order: 28, parent: 'settings' },
-    { name: 'API Management', slug: 'api-management', icon: '🌐', route: '/super-admin/settings/api-keys', order: 29, parent: 'settings' },
+    { name: 'System Settings', slug: 'system-settings', icon: '🔐', route: '/super-admin/settings', order: 24, parent: 'settings' },
+    { name: 'Email Configuration', slug: 'email-config', icon: '✉️', route: '/super-admin/settings/email-config', order: 25, parent: 'settings' },
+    { name: 'API Management', slug: 'api-management', icon: '🌐', route: '/super-admin/settings/api-keys', order: 26, parent: 'settings' },
     
-    // System Users Section (30)
-    { name: 'System Users', slug: 'system-users', icon: '👨‍💼', route: '/super-admin/users', order: 30, parent: null }
+    // System Users Section (27)
+    { name: 'System Users', slug: 'system-users', icon: '👨‍💼', route: '/super-admin/users', order: 27, parent: null }
   ],
   
   tenant: [
@@ -185,14 +182,14 @@ async function seedMenus() {
     
     // Menu breakdown
     console.log('\n📋 Platform Menu Structure:');
-    console.log('  • Overview: 2 menus (Dashboard, Audit Logs)');
-    console.log('  • Tenant Management: 4 menus');
+    console.log('  • Dashboard: 1 menu');
+    console.log('  • Tenant Management: 4 menus (Tenants, Active, Suspended, Create)');
     console.log('  • Analytics & Reports: 4 menus');
     console.log('  • Billing & Subscriptions: 4 menus');
     console.log('  • Notifications: 3 menus');
-    console.log('  • System Health: 4 menus');
-    console.log('  • Settings: 7 menus');
-    console.log('  • System Team: 2 menus');
+    console.log('  • Health and Logs: 6 menus (includes Audit Logs, System Logs)');
+    console.log('  • Settings: 4 menus (removed duplicates)');
+    console.log('  • System Users: 1 menu');
     
     console.log('\n📋 Tenant Menu Structure:');
     console.log('  • Dashboard: 1 menu');

@@ -51,14 +51,14 @@ export class SuperAdminLayoutComponent implements OnInit {
    * Load menus from backend based on user permissions
    */
   loadMenus(): void {
-    console.log('[SUPER_ADMIN_LAYOUT] 📋 Loading platform menus from database...');
+    console.log('[SUPER_ADMIN_LAYOUT] 📋 Loading platform menus filtered by user role...');
     this.loadingMenu.set(true);
     this.menuError.set(null);
 
-    // Use dynamic menu from database instead of static
-    this.menuService.getDynamicPlatformMenu().subscribe({
+    // Use user-specific menu from database
+    this.menuService.getDynamicPlatformMenuForUser().subscribe({
       next: (menu) => {
-        console.log('[SUPER_ADMIN_LAYOUT] ✅ Dynamic platform menu loaded:', {
+        console.log('[SUPER_ADMIN_LAYOUT] ✅ User-specific platform menu loaded:', {
           sections: menu.length,
           items: menu.reduce((sum, s) => sum + s.items.length, 0),
           menu: menu
@@ -71,16 +71,22 @@ export class SuperAdminLayoutComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('[SUPER_ADMIN_LAYOUT] ❌ Failed to load dynamic menus:', error);
-        this.menuError.set('Failed to load menu from database. Using fallback.');
+        console.error('[SUPER_ADMIN_LAYOUT] ❌ Failed to load user menus:', error);
+        this.menuError.set('Failed to load menu from database.');
         this.loadingMenu.set(false);
         
-        // Use fallback menu
-        const fallback = this.menuService.getFallbackPlatformMenu();
-        console.log('[SUPER_ADMIN_LAYOUT] 📦 Using fallback menu:', fallback);
-        this.navSections.set(fallback);
+        // Show empty sidebar (no menus assigned)
+        this.navSections.set([]);
       }
     });
+  }
+
+  /**
+   * Refresh menus - useful after menu assignments change
+   */
+  refreshMenus(): void {
+    console.log('[SUPER_ADMIN_LAYOUT] � Refreshing menus...');
+    this.loadMenus();
   }
 
   toggleSidebar(): void {

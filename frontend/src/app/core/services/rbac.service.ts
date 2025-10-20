@@ -236,7 +236,7 @@ export class RbacService {
    * Get user's accessible menus
    */
   getUserMenus(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/menus/user-menus`);
+    return this.http.get(`${this.apiUrl}/users/me/menus`);
   }
 
   /**

@@ -37,6 +37,7 @@ export class TenantListComponent implements OnInit {
   readonly loading = signal(true);
   readonly searchTerm = signal('');
   readonly statusFilter = signal('all');
+  readonly activeTab = signal<'active' | 'suspended'>('active');
 
   private searchSubject = new Subject<void>();
 
@@ -76,7 +77,8 @@ export class TenantListComponent implements OnInit {
       status: this.statusFilter()
     });
     
-    this.tenantService.getAllTenants(this.searchTerm(), this.statusFilter() === 'all' ? undefined : this.statusFilter()).subscribe({
+    // Always fetch all tenants (or all matching search) to populate both sections
+    this.tenantService.getAllTenants(this.searchTerm(), undefined).subscribe({
       next: (response) => {
         console.log('[TENANT_LIST] ✅ Tenants loaded:', {
           success: response.success,
@@ -87,6 +89,8 @@ export class TenantListComponent implements OnInit {
         if (response.success) {
           this.tenants.set(response.tenants);
           this.filteredTenants.set(response.tenants);
+          
+          // Always filter into active and suspended separately
           const activeTenants = response.tenants.filter((t: TenantRow) => t.status === 'active');
           const suspendedTenants = response.tenants.filter((t: TenantRow) => t.status === 'suspended');
           
@@ -128,15 +132,15 @@ export class TenantListComponent implements OnInit {
   getStatusColor(status: string): string {
     switch (status) {
       case 'active':
-        return 'bg-green-900/30 border border-green-700 text-green-400';
+        return 'bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-400';
       case 'trial':
-        return 'bg-blue-900/30 border border-blue-700 text-blue-400';
+        return 'bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-400';
       case 'inactive':
-        return 'bg-red-900/30 border border-red-700 text-red-400';
+        return 'bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400';
       case 'suspended':
-        return 'bg-yellow-900/30 border border-yellow-700 text-yellow-400';
+        return 'bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 text-yellow-700 dark:text-yellow-400';
       default:
-        return 'bg-gray-700/30 border border-gray-600 text-gray-400';
+        return 'bg-gray-100 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-400';
     }
   }
 

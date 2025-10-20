@@ -15,6 +15,11 @@
     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
   </div>
 
+  <!-- Error State -->
+  <div *ngIf="error() && !loading()" class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+    <p class="text-sm text-red-800 dark:text-red-200">{{ error() }}</p>
+  </div>
+
   <!-- Dashboard Content -->
   <div *ngIf="!loading()">
     <!-- Compact Stats Grid -->
@@ -40,11 +45,11 @@
         </a>
       </div>
 
-      <div *ngIf="recentTenants().length === 0" class="px-4 py-6 text-center">
+      <div *ngIf="systemUsers().length === 0" class="px-4 py-6 text-center">
         <p class="text-xs text-gray-600 dark:text-gray-400">No system users yet</p>
       </div>
 
-      <div *ngIf="recentTenants().length > 0" class="overflow-x-auto">
+      <div *ngIf="systemUsers().length > 0" class="overflow-x-auto">
         <table class="w-full text-xs">
           <thead class="bg-gray-100 dark:bg-gray-900/50">
             <tr class="border-b border-gray-200 dark:border-gray-700">
@@ -56,26 +61,26 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let tenant of recentTenants()" class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+            <tr *ngFor="let user of systemUsers()" class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
               <td class="px-4 py-2">
                 <div class="flex items-center gap-2">
                   <div class="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded text-xs flex items-center justify-center text-white font-bold">
-                    {{ getInitials(tenant.name) }}
+                    {{ getInitials(user.name) }}
                   </div>
-                  <span class="text-gray-900 dark:text-white font-medium">{{ tenant.name }}</span>
+                  <span class="text-gray-900 dark:text-white font-medium">{{ user.name }}</span>
                 </div>
               </td>
               <td class="px-4 py-2 text-gray-600 dark:text-gray-300">
-                {{ tenant.email }}
+                {{ user.email }}
               </td>
               <td class="px-4 py-2 text-gray-600 dark:text-gray-300">
-                <span class="px-2 py-1 rounded-full text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">System Admin</span>
+                <span class="px-2 py-1 rounded-full text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">{{ user.role }}</span>
               </td>
               <td class="px-4 py-2">
-                <span [ngClass]="getStatusBadgeClass(tenant.status)" class="px-2 py-1 rounded text-xs font-medium">{{ tenant.status }}</span>
+                <span [ngClass]="getStatusBadgeClass(user.status)" class="px-2 py-1 rounded text-xs font-medium">{{ user.status }}</span>
               </td>
               <td class="px-4 py-2">
-                <a [routerLink]="['/super-admin/users', tenant.id]" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium transition-colors">
+                <a [routerLink]="['/super-admin/users', user.id]" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium transition-colors">
                   View
                 </a>
               </td>

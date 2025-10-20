@@ -6,9 +6,9 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="p-6">
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white p-6 lg:p-8">
       <div class="max-w-7xl mx-auto">
-        <div class="mb-6">
+        <div class="mb-8">
           <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">⚙️ System Settings</h1>
           <p class="text-gray-600 dark:text-gray-400">General platform configuration</p>
         </div>

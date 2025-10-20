@@ -23,16 +23,16 @@ interface SystemLog {
   standalone: true,
   imports: [CommonModule, FormsModule, TitleCasePipe, FilterByLevelPipe],
   template: `
-    <div class="animate-fade-in p-6 lg:p-8">
+    <div class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 animate-fade-in p-6 lg:p-8">
       <!-- Error Alert -->
-      <div *ngIf="error()" class="bg-red-900/30 border border-red-700/50 rounded-lg p-4 mb-6">
+      <div *ngIf="error()" class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700/50 rounded-lg p-4 mb-6">
         <div class="flex items-start gap-3">
-          <svg class="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <svg class="w-5 h-5 text-red-600 dark:text-red-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
           </svg>
           <div>
-            <p class="text-red-200 font-semibold">Error Loading System Logs</p>
-            <p class="text-red-300 text-sm mt-1">{{ error() }}</p>
+            <p class="text-red-800 dark:text-red-200 font-semibold">Error Loading System Logs</p>
+            <p class="text-red-700 dark:text-red-300 text-sm mt-1">{{ error() }}</p>
           </div>
         </div>
       </div>
@@ -40,29 +40,29 @@ interface SystemLog {
       <!-- Page Header -->
       <div class="flex justify-between items-center mb-8">
         <div>
-          <h1 class="text-3xl font-bold text-white">📝 System Logs</h1>
-          <p class="text-gray-400 mt-2">Real-time application logs, errors, and system events</p>
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">📝 System Logs</h1>
+          <p class="text-gray-600 dark:text-gray-400 mt-2">Real-time application logs, errors, and system events</p>
         </div>
-        <button (click)="refreshLogs()" class="btn-secondary">
+        <button (click)="refreshLogs()" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white text-sm font-medium rounded-lg transition">
           🔄 Refresh
         </button>
       </div>
 
       <!-- Filters Section -->
-      <div class="card mb-6">
+      <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-6">
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
           <!-- Search -->
           <div class="md:col-span-2">
-            <label class="block text-sm font-medium text-gray-300 mb-2">Search</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search</label>
             <div class="relative">
               <input
                 type="text"
                 [value]="searchTerm()"
                 (input)="onSearchChange($any($event.target).value)"
                 placeholder="Search by message, endpoint..."
-                class="input-field"
+                class="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
               />
-              <svg class="absolute left-3 top-3 w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
             </div>
@@ -70,11 +70,11 @@ interface SystemLog {
 
           <!-- Level Filter -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Level</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Level</label>
             <select 
               [value]="filterLevel()"
               (change)="onFilterLevelChange($any($event.target).value)"
-              class="input-field"
+              class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:border-purple-500 focus:outline-none"
               title="Filter by log level">
               <option value="all">All Levels</option>
               <option value="INFO">Info</option>
@@ -87,11 +87,11 @@ interface SystemLog {
 
           <!-- Source Filter -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Source</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Source</label>
             <select 
               [value]="filterSource()"
               (change)="onFilterSourceChange($any($event.target).value)"
-              class="input-field"
+              class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:border-purple-500 focus:outline-none"
               title="Filter by source">
               <option value="all">All Sources</option>
               <option value="HTTP">HTTP</option>
@@ -104,11 +104,11 @@ interface SystemLog {
 
           <!-- Limit Rows -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Show</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Show</label>
             <select 
               [value]="rowLimit()"
               (change)="onRowLimitChange($any($event.target).value)"
-              class="input-field"
+              class="w-full px-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:border-purple-500 focus:outline-none"
               title="Limit rows displayed">
               <option value="25">Last 25</option>
               <option value="50">Last 50</option>
@@ -120,39 +120,39 @@ interface SystemLog {
       </div>
 
       <!-- Mock Data Notice -->
-      <div *ngIf="systemLogs().length === 0" class="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4 mb-6 text-sm text-blue-300">
+      <div *ngIf="systemLogs().length === 0" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-lg p-4 mb-6 text-sm text-blue-800 dark:text-blue-300">
         <strong>ℹ️ Note:</strong> No system logs available yet. Perform actions in the system to generate logs.
       </div>
 
       <!-- Loading State -->
-      <div *ngIf="loading()" class="card">
-        <div class="flex items-center justify-center py-12">
+      <div *ngIf="loading()" class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-12">
+        <div class="flex items-center justify-center">
           <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
         </div>
       </div>
 
       <!-- Empty State -->
-      <div *ngIf="!loading() && filteredLogs().length === 0" class="card text-center py-12">
+      <div *ngIf="!loading() && filteredLogs().length === 0" class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-12 text-center">
         <div class="text-4xl mb-3">📋</div>
-        <h3 class="text-lg font-semibold text-white">No logs found</h3>
-        <p class="text-gray-400 mt-2">Try adjusting your filters or search criteria</p>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">No logs found</h3>
+        <p class="text-gray-600 dark:text-gray-400 mt-2">Try adjusting your filters or search criteria</p>
       </div>
 
       <!-- System Logs List -->
       <div *ngIf="!loading() && filteredLogs().length > 0" class="space-y-3">
-        <div *ngFor="let log of filteredLogs()" class="card-log">
+        <div *ngFor="let log of filteredLogs()" class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:border-purple-300 dark:hover:border-purple-500/50 transition">
           <div class="flex items-start gap-4">
             <!-- Level Icon -->
-            <div class="text-xl">{{ getLevelIcon(log.level) }}</div>
+            <div class="text-xl flex-shrink-0">{{ getLevelIcon(log.level) }}</div>
 
             <!-- Content -->
             <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between gap-4 mb-2">
+              <div class="flex items-center justify-between gap-4 mb-2 flex-wrap">
                 <div>
-                  <h3 class="font-semibold text-white">
+                  <h3 class="font-semibold text-gray-900 dark:text-white">
                     {{ log.message }}
                   </h3>
-                  <p class="text-xs text-gray-500">{{ log.source }} · {{ log.timestamp }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ log.source }} · {{ log.timestamp }}</p>
                 </div>
                 <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap"
                       [ngClass]="getLevelColor(log.level)">
@@ -163,25 +163,25 @@ interface SystemLog {
               <!-- Details Row -->
               <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                 <div *ngIf="log.endpoint">
-                  <span class="text-gray-500">Endpoint:</span>
-                  <p class="text-gray-300 font-mono">{{ log.endpoint }}</p>
+                  <span class="text-gray-500 dark:text-gray-400">Endpoint:</span>
+                  <p class="text-gray-700 dark:text-gray-300 font-mono">{{ log.endpoint }}</p>
                 </div>
                 <div *ngIf="log.method">
-                  <span class="text-gray-500">Method:</span>
-                  <p class="text-gray-300">{{ log.method }}</p>
+                  <span class="text-gray-500 dark:text-gray-400">Method:</span>
+                  <p class="text-gray-700 dark:text-gray-300">{{ log.method }}</p>
                 </div>
                 <div *ngIf="log.statusCode">
-                  <span class="text-gray-500">Status:</span>
-                  <p class="text-gray-300">{{ log.statusCode }}</p>
+                  <span class="text-gray-500 dark:text-gray-400">Status:</span>
+                  <p class="text-gray-700 dark:text-gray-300">{{ log.statusCode }}</p>
                 </div>
                 <div *ngIf="log.duration">
-                  <span class="text-gray-500">Duration:</span>
-                  <p class="text-gray-300">{{ log.duration }}</p>
+                  <span class="text-gray-500 dark:text-gray-400">Duration:</span>
+                  <p class="text-gray-700 dark:text-gray-300">{{ log.duration }}</p>
                 </div>
               </div>
 
               <!-- Details JSON -->
-              <div *ngIf="log.details" class="mt-2 p-2 bg-gray-900/50 rounded border border-gray-700/30 text-xs font-mono text-gray-400 max-h-24 overflow-auto">
+              <div *ngIf="log.details" class="mt-2 p-2 bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-700/30 text-xs font-mono text-gray-600 dark:text-gray-400 max-h-24 overflow-auto">
                 {{ log.details }}
               </div>
             </div>
@@ -191,25 +191,25 @@ interface SystemLog {
 
       <!-- Stats Footer -->
       <div class="mt-8 grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div class="stat-card">
-          <div class="stat-number">{{ (filteredLogs() | filterByLevel: 'SUCCESS').length }}</div>
-          <div class="stat-label">Successful</div>
+        <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
+          <div class="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">{{ (filteredLogs() | filterByLevel: 'SUCCESS').length }}</div>
+          <div class="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Successful</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ (filteredLogs() | filterByLevel: 'INFO').length }}</div>
-          <div class="stat-label">Info</div>
+        <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
+          <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">{{ (filteredLogs() | filterByLevel: 'INFO').length }}</div>
+          <div class="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Info</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ (filteredLogs() | filterByLevel: 'WARN').length }}</div>
-          <div class="stat-label">Warnings</div>
+        <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
+          <div class="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-2">{{ (filteredLogs() | filterByLevel: 'WARN').length }}</div>
+          <div class="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Warnings</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ (filteredLogs() | filterByLevel: 'ERROR').length }}</div>
-          <div class="stat-label">Errors</div>
+        <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
+          <div class="text-3xl font-bold text-red-600 dark:text-red-400 mb-2">{{ (filteredLogs() | filterByLevel: 'ERROR').length }}</div>
+          <div class="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Errors</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-number">{{ filteredLogs().length }}</div>
-          <div class="stat-label">Total Logs</div>
+        <div class="bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg p-6 text-center">
+          <div class="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">{{ filteredLogs().length }}</div>
+          <div class="text-sm font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">Total Logs</div>
         </div>
       </div>
     </div>
@@ -513,17 +513,17 @@ export class SystemLogsComponent implements OnInit {
   getLevelColor(level: string): string {
     switch (level) {
       case 'SUCCESS':
-        return 'bg-green-900/30 border border-green-700 text-green-400';
+        return 'bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-400';
       case 'INFO':
-        return 'bg-blue-900/30 border border-blue-700 text-blue-400';
+        return 'bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-400';
       case 'WARN':
-        return 'bg-yellow-900/30 border border-yellow-700 text-yellow-400';
+        return 'bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 text-yellow-700 dark:text-yellow-400';
       case 'ERROR':
-        return 'bg-red-900/30 border border-red-700 text-red-400';
+        return 'bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400';
       case 'DEBUG':
-        return 'bg-cyan-900/30 border border-cyan-700 text-cyan-400';
+        return 'bg-cyan-100 dark:bg-cyan-900/30 border border-cyan-200 dark:border-cyan-700 text-cyan-700 dark:text-cyan-400';
       default:
-        return 'bg-gray-700/30 border border-gray-600 text-gray-400';
+        return 'bg-gray-100 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-400';
     }
   }
 }

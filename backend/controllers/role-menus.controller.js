@@ -62,6 +62,38 @@ exports.assignMenusToRole = async (req, res) => {
 };
 
 /**
+ * Get all role-menu assignments
+ * GET /api/roles/menus/all
+ */
+exports.getAllRoleMenus = async (req, res) => {
+  try {
+    const result = await db.query(
+      `SELECT rm.role_id, rm.menu_id, rm.created_at
+       FROM role_menus rm
+       ORDER BY rm.role_id ASC, rm.menu_id ASC`
+    );
+
+    logger.success('All role-menu assignments retrieved', {
+      assignmentCount: result.rows.length
+    });
+
+    res.json({
+      success: true,
+      roleMenus: result.rows,
+      count: result.rows.length
+    });
+  } catch (error) {
+    logger.error('Failed to get all role-menu assignments', {
+      message: error.message
+    });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve role-menu assignments'
+    });
+  }
+};
+
+/**
  * Get menus for a specific role
  * GET /api/roles/:id/menus
  */
@@ -133,6 +165,7 @@ exports.getAvailableMenus = async (req, res) => {
 /**
  * Get user's accessible menus (called on login/profile)
  * GET /api/users/me/menus
+ * Returns menus in TREE structure with parent-child relationships
  */
 exports.getUserMenus = async (req, res) => {
   try {
@@ -140,23 +173,96 @@ exports.getUserMenus = async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const result = await db.query(
-      `SELECT DISTINCT m.* FROM menus m
-       JOIN role_menus rm ON m.id = rm.menu_id
-       WHERE rm.role_id = $1 AND m.is_active = true
-       ORDER BY m.order_index ASC`,
+    // Step 1: Get all menu IDs assigned to this role
+    const roleMenuResult = await db.query(
+      `SELECT DISTINCT rm.menu_id FROM role_menus rm
+       WHERE rm.role_id = $1`,
       [req.user.roleId]
     );
 
-    logger.success('User menus retrieved', {
+    const assignedMenuIds = roleMenuResult.rows.map(r => r.menu_id);
+    
+    logger.success('User role menu assignments retrieved', {
       userId: req.user.id,
       roleId: req.user.roleId,
-      menuCount: result.rows.length
+      assignedMenuCount: assignedMenuIds.length
+    });
+
+    // If no menus assigned, return empty array
+    if (assignedMenuIds.length === 0) {
+      logger.success('User has no menus assigned', {
+        userId: req.user.id,
+        roleId: req.user.roleId
+      });
+      return res.json({
+        success: true,
+        menus: [],
+        count: 0
+      });
+    }
+
+    // Step 2: Get all menus with parent-child relationships
+    const allMenusResult = await db.query(
+      `SELECT id, name, slug, icon, route, scope, is_active, order_index, parent_menu_id, tenant_id
+       FROM menus 
+       WHERE is_active = true
+       ORDER BY scope ASC, order_index ASC, name ASC`
+    );
+
+    const allMenus = allMenusResult.rows.map(menu => ({
+      id: menu.id,
+      name: menu.name,
+      slug: menu.slug,
+      icon: menu.icon,
+      route: menu.route,
+      scope: menu.scope,
+      isActive: menu.is_active,
+      orderIndex: menu.order_index,
+      parentMenuId: menu.parent_menu_id,
+      tenantId: menu.tenant_id
+    }));
+
+    // Step 3: Build tree structure INCLUDING parent menus if child is assigned
+    // This ensures parent menus are always shown if any child is assigned
+    const menuIdsToInclude = new Set(assignedMenuIds);
+
+    // Add parent menus recursively
+    const addParents = (menuId) => {
+      const menu = allMenus.find(m => m.id === menuId);
+      if (menu && menu.parentMenuId) {
+        menuIdsToInclude.add(menu.parentMenuId);
+        addParents(menu.parentMenuId);
+      }
+    };
+
+    assignedMenuIds.forEach(menuId => addParents(menuId));
+
+    // Step 4: Filter menus and build tree
+    const filteredMenus = allMenus.filter(m => menuIdsToInclude.has(m.id));
+
+    const buildTree = (parentId = null) => {
+      return filteredMenus
+        .filter(m => m.parentMenuId === parentId)
+        .map(menu => ({
+          ...menu,
+          children: buildTree(menu.id)
+        }));
+    };
+
+    const tree = buildTree(null);
+
+    logger.success('User menus tree built', {
+      userId: req.user.id,
+      roleId: req.user.roleId,
+      rootMenuCount: tree.length,
+      totalMenuCount: filteredMenus.length,
+      assignedMenuCount: assignedMenuIds.length
     });
 
     res.json({
       success: true,
-      menus: result.rows
+      menus: tree,
+      count: filteredMenus.length
     });
   } catch (error) {
     logger.error('Failed to get user menus', {

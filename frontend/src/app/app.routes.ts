@@ -160,6 +160,10 @@ export const routes: Routes = [
         path: 'settings',
         loadComponent: () => import('./pages/super-admin/settings/settings.component').then(m => m.SettingsComponent)
       },
+      {
+        path: 'profile',
+        loadComponent: () => import('./pages/super-admin/profile/profile.component').then(m => m.ProfileComponent)
+      },
     ]
   },
   {
@@ -216,6 +220,10 @@ export const routes: Routes = [
       {
         path: 'settings',
         loadComponent: () => import('./pages/tenant/settings/settings.component').then(m => m.TenantSettingsComponent)
+      },
+      {
+        path: 'profile',
+        loadComponent: () => import('./pages/tenant/profile/profile.component').then(m => m.TenantProfileComponent)
       }
     ]
   },

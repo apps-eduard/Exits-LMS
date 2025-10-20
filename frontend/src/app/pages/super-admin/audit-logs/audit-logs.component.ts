@@ -129,24 +129,24 @@ export class AuditLogsComponent implements OnInit {
   }
 
   getActionColor(action: string): string {
-    if (action.includes('CREATE')) return 'bg-green-900/30 text-green-400';
-    if (action.includes('UPDATE')) return 'bg-blue-900/30 text-blue-400';
-    if (action.includes('DELETE')) return 'bg-red-900/30 text-red-400';
-    if (action.includes('LOGIN')) return 'bg-purple-900/30 text-purple-400';
-    if (action.includes('VIEW')) return 'bg-cyan-900/30 text-cyan-400';
-    return 'bg-gray-700/30 text-gray-400';
+    if (action.includes('CREATE')) return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400';
+    if (action.includes('UPDATE')) return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400';
+    if (action.includes('DELETE')) return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400';
+    if (action.includes('LOGIN')) return 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400';
+    if (action.includes('VIEW')) return 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400';
+    return 'bg-gray-100 dark:bg-gray-700/30 text-gray-700 dark:text-gray-400';
   }
 
   getStatusColor(status: string): string {
     switch (status) {
       case 'success':
-        return 'bg-green-900/30 border border-green-700 text-green-400';
+        return 'bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-700 text-green-700 dark:text-green-400';
       case 'failed':
-        return 'bg-red-900/30 border border-red-700 text-red-400';
+        return 'bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-400';
       case 'pending':
-        return 'bg-yellow-900/30 border border-yellow-700 text-yellow-400';
+        return 'bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 text-yellow-700 dark:text-yellow-400';
       default:
-        return 'bg-gray-700/30 border border-gray-600 text-gray-400';
+        return 'bg-gray-100 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-400';
     }
   }
 
