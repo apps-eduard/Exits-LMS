@@ -29,6 +29,8 @@ interface TenantRow {
 export class TenantListComponent implements OnInit {
   readonly tenants = signal<TenantRow[]>([]);
   readonly filteredTenants = signal<TenantRow[]>([]);
+  readonly activeTenants = signal<TenantRow[]>([]);
+  readonly suspendedTenants = signal<TenantRow[]>([]);
   readonly loading = signal(true);
   readonly searchTerm = signal('');
   readonly statusFilter = signal('all');
@@ -53,6 +55,8 @@ export class TenantListComponent implements OnInit {
         if (response.success) {
           this.tenants.set(response.tenants);
           this.filteredTenants.set(response.tenants);
+          this.activeTenants.set(response.tenants.filter((t: TenantRow) => t.status === 'active'));
+          this.suspendedTenants.set(response.tenants.filter((t: TenantRow) => t.status === 'suspended'));
         }
         this.loading.set(false);
       },
