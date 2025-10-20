@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { ConfirmationDialogService, ConfirmationConfig } from '../services/confirmation-dialog.service';
+import { ThemeService } from '../services/theme.service';
 
 @Component({
   selector: 'app-confirmation-dialog',
@@ -15,7 +16,7 @@ import { ConfirmationDialogService, ConfirmationConfig } from '../services/confi
       <div class="absolute inset-0 bg-black/50" (click)="onCancel()"></div>
 
       <!-- Dialog Container -->
-      <div [@scaleInOut] class="relative bg-gray-800 rounded-lg shadow-2xl max-w-md w-full mx-4 border border-gray-700">
+      <div [@scaleInOut] [ngClass]="getDialogClasses()" class="relative rounded-lg shadow-2xl max-w-md w-full mx-4 border">
         <!-- Header -->
         <div class="px-6 pt-6 pb-3">
           <div class="flex items-start gap-4">
@@ -40,27 +41,26 @@ import { ConfirmationDialogService, ConfirmationConfig } from '../services/confi
 
             <!-- Title -->
             <div class="flex-1">
-              <h3 class="text-lg font-semibold text-white">{{ config?.title }}</h3>
+              <h3 [ngClass]="getTitleClasses()">{{ config?.title }}</h3>
             </div>
           </div>
         </div>
 
         <!-- Message -->
         <div class="px-6 pb-4">
-          <p class="text-gray-300 text-sm leading-relaxed">{{ config?.message }}</p>
+          <p [ngClass]="getMessageClasses()">{{ config?.message }}</p>
         </div>
 
         <!-- Actions -->
-        <div class="px-6 py-4 bg-gray-900/50 border-t border-gray-700 rounded-b-lg flex gap-3 justify-end">
+        <div [ngClass]="getActionsClasses()" class="px-6 py-4 border-t rounded-b-lg flex gap-3 justify-end">
           <button 
             (click)="onCancel()"
-            class="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-md transition-colors">
+            [ngClass]="getCancelButtonClasses()">
             {{ config?.cancelText || 'Cancel' }}
           </button>
           <button 
             (click)="onConfirm()"
-            [ngClass]="getConfirmButtonClasses()"
-            class="px-4 py-2 text-sm font-medium rounded-md transition-colors">
+            [ngClass]="getConfirmButtonClasses()">
             {{ config?.confirmText || 'Confirm' }}
           </button>
         </div>
@@ -92,8 +92,12 @@ import { ConfirmationDialogService, ConfirmationConfig } from '../services/confi
 export class ConfirmationDialogComponent implements OnInit {
   isOpen$;
   config: ConfirmationConfig | null = null;
+  isDarkMode$ = this.themeService.darkMode$;
 
-  constructor(private confirmationService: ConfirmationDialogService) {
+  constructor(
+    private confirmationService: ConfirmationDialogService,
+    private themeService: ThemeService
+  ) {
     this.isOpen$ = this.confirmationService.isOpen$;
   }
 
@@ -109,6 +113,44 @@ export class ConfirmationDialogComponent implements OnInit {
 
   onCancel(): void {
     this.confirmationService.resolve(false);
+  }
+
+  getDialogClasses(): string {
+    if (this.isDarkMode) {
+      return 'bg-gray-800 border-gray-700';
+    }
+    return 'bg-white border-gray-200';
+  }
+
+  getTitleClasses(): string {
+    const baseClasses = 'text-lg font-semibold';
+    if (this.isDarkMode) {
+      return `${baseClasses} text-white`;
+    }
+    return `${baseClasses} text-gray-900`;
+  }
+
+  getMessageClasses(): string {
+    const baseClasses = 'text-sm leading-relaxed';
+    if (this.isDarkMode) {
+      return `${baseClasses} text-gray-300`;
+    }
+    return `${baseClasses} text-gray-700`;
+  }
+
+  getActionsClasses(): string {
+    if (this.isDarkMode) {
+      return 'bg-gray-900/50 border-gray-700';
+    }
+    return 'bg-gray-50 border-gray-200';
+  }
+
+  getCancelButtonClasses(): string {
+    const baseClasses = 'px-4 py-2 text-sm font-medium rounded-md transition-colors';
+    if (this.isDarkMode) {
+      return `${baseClasses} text-gray-300 bg-gray-700 hover:bg-gray-600`;
+    }
+    return `${baseClasses} text-gray-700 bg-gray-200 hover:bg-gray-300`;
   }
 
   getIconClasses(): string {
@@ -129,7 +171,7 @@ export class ConfirmationDialogComponent implements OnInit {
   }
 
   getConfirmButtonClasses(): string {
-    const baseClasses = 'text-white';
+    const baseClasses = 'text-white px-4 py-2 text-sm font-medium rounded-md transition-colors';
     
     switch (this.config?.confirmClass) {
       case 'danger':
@@ -143,5 +185,9 @@ export class ConfirmationDialogComponent implements OnInit {
       default:
         return `${baseClasses} bg-purple-600 hover:bg-purple-700`;
     }
+  }
+
+  get isDarkMode(): boolean {
+    return this.themeService.isDarkMode();
   }
 }
