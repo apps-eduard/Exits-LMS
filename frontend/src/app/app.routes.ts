@@ -35,6 +35,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/super-admin/dashboard/dashboard.component').then(m => m.SuperAdminDashboardComponent)
       },
       {
+        path: 'audit-logs',
+        loadComponent: () => import('./pages/super-admin/audit-logs/audit-logs.component').then(m => m.AuditLogsComponent)
+      },
+      {
         path: 'tenants',
         loadComponent: () => import('./pages/super-admin/tenants/tenant-list.component').then(m => m.TenantListComponent)
       },
@@ -53,6 +57,10 @@ export const routes: Routes = [
       {
         path: 'users',
         loadComponent: () => import('./pages/super-admin/users/user-management.component').then(m => m.UserManagementComponent)
+      },
+      {
+        path: 'users/activity',
+        loadComponent: () => import('./pages/super-admin/users/activity-logs/activity-logs.component').then(m => m.ActivityLogsComponent)
       },
       {
         path: 'users/create',
