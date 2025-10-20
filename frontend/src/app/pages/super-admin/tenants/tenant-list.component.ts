@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TenantService } from '../../../core/services/tenant.service';
 import { debounceTime, Subject } from 'rxjs';
@@ -39,7 +39,7 @@ export class TenantListComponent implements OnInit {
 
   private searchSubject = new Subject<void>();
 
-  constructor(private tenantService: TenantService) {
+  constructor(private tenantService: TenantService, private route: ActivatedRoute) {
     // Debounce search and filter changes to prevent rate limiting
     this.searchSubject.pipe(debounceTime(400)).subscribe(() => {
       this.loadTenants();
@@ -47,7 +47,16 @@ export class TenantListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadTenants();
+    // Subscribe to query parameters for pre-filtering (Active/Suspended tenants from sidebar)
+    this.route.queryParams.subscribe(params => {
+      if (params['status']) {
+        console.log('[TENANT_LIST] 🔗 Query param detected:', { status: params['status'] });
+        this.statusFilter.set(params['status']);
+      } else {
+        this.statusFilter.set('all');
+      }
+      this.loadTenants();
+    });
   }
 
   loadTenants(): void {

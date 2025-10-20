@@ -360,13 +360,24 @@ router.get('/platform', authMiddleware, async (req, res) => {
     const userId = req.user.id;
     const roleScope = req.user.roleScope;
     
+    console.log('[MENU_API] 🍔 Platform menu requested by:', {
+      userId,
+      roleScope,
+      isSuperAdmin: roleScope === 'platform'
+    });
+    
     // For platform admins, show all menu items (super admin)
     const isSuperAdmin = roleScope === 'platform';
     const menu = filterMenuByPermissions(MENU_CONFIG.platform, [], isSuperAdmin);
     
+    console.log('[MENU_API] ✅ Platform menu returned:', {
+      sections: menu.length,
+      items: menu.reduce((sum, s) => sum + s.items.length, 0)
+    });
+    
     res.json(menu);
   } catch (error) {
-    logger.error('Error fetching platform menu:', error);
+    console.error('[MENU_API] ❌ Error fetching platform menu:', error);
     res.status(500).json({ error: 'Failed to fetch menu' });
   }
 });
