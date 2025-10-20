@@ -62,6 +62,13 @@ export class TenantService {
     if (search) params.search = search;
     if (status) params.status = status;
     
+    console.log('[TENANT_SERVICE] 🔍 getAllTenants called with:', {
+      search,
+      status,
+      url: this.apiUrl,
+      params
+    });
+    
     return this.http.get<any>(this.apiUrl, { params });
   }
 
