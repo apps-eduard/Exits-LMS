@@ -134,6 +134,10 @@ export const routes: Routes = [
       {
         path: 'settings/roles',
         loadComponent: () => import('./pages/tenant/settings/tenant-roles.component').then(m => m.TenantRolesComponent)
+      },
+      {
+        path: 'settings',
+        loadComponent: () => import('./pages/tenant/settings/settings.component').then(m => m.TenantSettingsComponent)
       }
     ]
   },

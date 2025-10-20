@@ -87,6 +87,10 @@ export class TenantService {
     return this.http.put<any>(`${this.apiUrl}/${id}`, tenant);
   }
 
+  updateTenantStatus(id: string, status: string): Observable<any> {
+    return this.http.patch<any>(`${this.apiUrl}/${id}/status`, { status });
+  }
+
   toggleModule(tenantId: string, moduleName: string, isEnabled: boolean): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/${tenantId}/modules`, {
       moduleName,

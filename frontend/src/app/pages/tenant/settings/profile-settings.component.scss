@@ -1,0 +1,39 @@
+/* Profile Settings Styles */
+.space-y-6 {
+  gap: 1.5rem;
+}
+
+.space-y-4 {
+  gap: 1rem;
+}
+
+/* Smooth transitions */
+input, button {
+  transition: all 0.3s ease;
+}
+
+/* Focus states */
+input:focus {
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+}
+
+/* Disabled state */
+button:disabled {
+  opacity: 0.6;
+}
+
+/* Message animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+div[class*="bg-green"], div[class*="bg-red"] {
+  animation: slideIn 0.3s ease;
+}

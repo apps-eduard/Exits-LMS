@@ -199,8 +199,140 @@ const getProfile = async (req, res) => {
   }
 };
 
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { firstName, lastName, phone, email } = req.body;
+
+    if (!firstName || !lastName) {
+      return res.status(400).json({ error: 'First name and last name are required' });
+    }
+
+    // Check if email is being changed and if it's already in use
+    if (email) {
+      const existingUserResult = await db.query(
+        'SELECT id FROM users WHERE email = $1 AND id != $2',
+        [email.toLowerCase(), userId]
+      );
+
+      if (existingUserResult.rows.length > 0) {
+        return res.status(400).json({ error: 'Email already in use' });
+      }
+    }
+
+    // Update user profile
+    const updateResult = await db.query(
+      `UPDATE users 
+       SET first_name = $1, last_name = $2, phone = $3, email = COALESCE($4, email)
+       WHERE id = $5
+       RETURNING id, email, first_name, last_name, phone, tenant_id`,
+      [firstName, lastName, phone || null, email ? email.toLowerCase() : null, userId]
+    );
+
+    if (updateResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = updateResult.rows[0];
+
+    // Log audit action
+    if (req.auditLog) {
+      req.auditLog('UPDATE', 'USER_PROFILE', userId, {
+        firstName,
+        lastName,
+        phone,
+        emailChanged: !!email,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        phone: user.phone,
+      },
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+};
+
+const changePassword = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    // Validate input
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ error: 'All password fields are required' });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ error: 'New passwords do not match' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    }
+
+    if (newPassword === currentPassword) {
+      return res.status(400).json({ error: 'New password must be different from current password' });
+    }
+
+    // Get current user with password hash
+    const userResult = await db.query(
+      'SELECT id, password_hash, email FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = userResult.rows[0];
+
+    // Verify current password
+    const isValidPassword = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isValidPassword) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await db.query(
+      'UPDATE users SET password_hash = $1 WHERE id = $2',
+      [hashedPassword, userId]
+    );
+
+    // Log audit action
+    if (req.auditLog) {
+      req.auditLog('UPDATE', 'USER_PASSWORD', userId, {
+        email: user.email,
+        action: 'password_changed',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully',
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Failed to change password' });
+  }
+};
+
 module.exports = {
   login,
   refreshTokenHandler,
   getProfile,
+  updateProfile,
+  changePassword,
 };

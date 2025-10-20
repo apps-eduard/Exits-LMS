@@ -2,16 +2,17 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SettingsService } from '../../../core/services/settings.service';
+import { ProfileSettingsComponent } from './profile-settings.component';
 
 @Component({
   selector: 'app-super-admin-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ProfileSettingsComponent],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss'
 })
 export class SettingsComponent implements OnInit {
-  readonly activeTab = signal('general');
+  readonly activeTab = signal('profile');
   readonly saving = signal(false);
   readonly savedMessage = signal('');
   readonly loading = signal(true);

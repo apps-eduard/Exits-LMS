@@ -1,11 +1,15 @@
 import { Component, OnInit, signal, effect } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { ConfirmationDialogComponent } from './core/components/confirmation-dialog.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
-  template: '<router-outlet></router-outlet>',
+  imports: [RouterOutlet, ConfirmationDialogComponent],
+  template: `
+    <app-confirmation-dialog></app-confirmation-dialog>
+    <router-outlet></router-outlet>
+  `,
   styles: []
 })
 export class AppComponent implements OnInit {

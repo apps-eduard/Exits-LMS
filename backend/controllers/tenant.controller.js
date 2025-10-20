@@ -444,11 +444,57 @@ const getTenantUsers = async (req, res) => {
   }
 };
 
+const toggleTenantStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Validate status
+    if (!['active', 'suspended', 'inactive', 'trial'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status. Must be: active, suspended, inactive, or trial' });
+    }
+
+    // Update tenant status
+    const result = await db.query(
+      `UPDATE tenants 
+       SET status = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2
+       RETURNING *`,
+      [status, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+
+    const tenant = result.rows[0];
+
+    // Audit log: Tenant status changed
+    if (req.auditLog) {
+      await req.auditLog('UPDATE_STATUS', 'TENANT', id, {
+        name: tenant.name,
+        newStatus: status,
+        oldStatus: tenant.status
+      });
+    }
+
+    res.json({
+      success: true,
+      tenant,
+      message: `Tenant ${status === 'suspended' ? 'suspended' : 'status changed to ' + status} successfully`
+    });
+  } catch (error) {
+    console.error('Toggle tenant status error:', error);
+    res.status(500).json({ error: 'Failed to update tenant status' });
+  }
+};
+
 module.exports = {
   getAllTenants,
   getTenantById,
   createTenant,
   updateTenant,
+  toggleTenantStatus,
   toggleTenantModule,
   getTenantUsers,
 };

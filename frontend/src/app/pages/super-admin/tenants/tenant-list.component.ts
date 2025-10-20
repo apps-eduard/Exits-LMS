@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TenantService } from '../../../core/services/tenant.service';
+import { ConfirmationDialogService } from '../../../core/services/confirmation-dialog.service';
 import { debounceTime, Subject } from 'rxjs';
 
 interface TenantRow {
@@ -39,7 +40,11 @@ export class TenantListComponent implements OnInit {
 
   private searchSubject = new Subject<void>();
 
-  constructor(private tenantService: TenantService, private route: ActivatedRoute) {
+  constructor(
+    private tenantService: TenantService,
+    private route: ActivatedRoute,
+    private confirmationService: ConfirmationDialogService
+  ) {
     // Debounce search and filter changes to prevent rate limiting
     this.searchSubject.pipe(debounceTime(400)).subscribe(() => {
       this.loadTenants();
@@ -162,6 +167,42 @@ export class TenantListComponent implements OnInit {
       status: tenant.status,
       hasId: !!tenant.id,
       allProps: tenant
+    });
+  }
+
+  toggleTenantStatus(tenant: TenantRow, event: Event): void {
+    event.stopPropagation();
+    
+    const newStatus = tenant.status === 'suspended' ? 'active' : 'suspended';
+    const action = newStatus === 'suspended' ? 'suspend' : 'activate';
+
+    this.confirmationService.confirm({
+      title: `${action.charAt(0).toUpperCase() + action.slice(1)} Tenant`,
+      message: `Are you sure you want to ${action} "${tenant.name}"? This action can be reversed.`,
+      confirmText: action.charAt(0).toUpperCase() + action.slice(1),
+      cancelText: 'Cancel',
+      confirmClass: action === 'suspend' ? 'warning' : 'success',
+      icon: 'question'
+    }).then(result => {
+      if (result.confirmed) {
+        this.tenantService.updateTenantStatus(tenant.id, newStatus).subscribe({
+          next: (response: any) => {
+            console.log(`✅ Tenant ${action}ed:`, response);
+            this.loadTenants();
+          },
+          error: (error: any) => {
+            console.error(`❌ Failed to ${action} tenant:`, error);
+            this.confirmationService.confirm({
+              title: 'Error',
+              message: `Failed to ${action} tenant. Please try again.`,
+              confirmText: 'OK',
+              cancelText: '',
+              confirmClass: 'danger',
+              icon: 'error'
+            });
+          }
+        });
+      }
     });
   }
 }

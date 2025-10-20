@@ -1,0 +1,175 @@
+<div class="space-y-6"></div>
+  <!-- Tab Navigation -->
+  <div class="flex gap-2 border-b border-gray-700">
+    <button 
+      (click)="setActiveTab('profile')"
+      type="button"
+      [class.active]="activeTab() === 'profile'"
+      class="px-4 py-3 font-medium text-sm transition-colors border-b-2 -mb-0.5"
+      [ngClass]="{
+        'border-purple-500 text-purple-400': activeTab() === 'profile',
+        'border-transparent text-gray-400 hover:text-gray-300': activeTab() !== 'profile'
+      }">
+      Profile Information
+    </button>
+    <button 
+      (click)="setActiveTab('password')"
+      type="button"
+      [class.active]="activeTab() === 'password'"
+      class="px-4 py-3 font-medium text-sm transition-colors border-b-2 -mb-0.5"
+      [ngClass]="{
+        'border-purple-500 text-purple-400': activeTab() === 'password',
+        'border-transparent text-gray-400 hover:text-gray-300': activeTab() !== 'password'
+      }">
+      Change Password
+    </button>
+  </div>
+
+  <!-- Message Display -->
+  <div *ngIf="message()" 
+       [ngClass]="{
+         'bg-green-900/30 border border-green-700 text-green-400': messageType() === 'success',
+         'bg-red-900/30 border border-red-700 text-red-400': messageType() === 'error'
+       }"
+       class="p-4 rounded-lg text-sm">
+    {{ message() }}
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="text-center py-8">
+    <div class="text-gray-400">Loading profile...</div>
+  </div>
+
+  <!-- Profile Information Tab -->
+  <div *ngIf="!loading() && activeTab() === 'profile'" class="space-y-6">
+    <form [formGroup]="profileForm" class="space-y-4">
+      <!-- First Name -->
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-2">First Name</label>
+        <input 
+          type="text"
+          formControlName="firstName"
+          class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
+          placeholder="Enter first name">
+        <div *ngIf="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched" 
+             class="text-red-400 text-xs mt-1">
+          First name is required (min 2 characters)
+        </div>
+      </div>
+
+      <!-- Last Name -->
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-2">Last Name</label>
+        <input 
+          type="text"
+          formControlName="lastName"
+          class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
+          placeholder="Enter last name">
+        <div *ngIf="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched" 
+             class="text-red-400 text-xs mt-1">
+          Last name is required (min 2 characters)
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+        <input 
+          type="email"
+          formControlName="email"
+          class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
+          placeholder="Enter email address">
+        <div *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched" 
+             class="text-red-400 text-xs mt-1">
+          Valid email address is required
+        </div>
+      </div>
+
+      <!-- Phone -->
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-2">Phone Number (Optional)</label>
+        <input 
+          type="tel"
+          formControlName="phone"
+          class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
+          placeholder="Enter phone number">
+      </div>
+
+      <!-- Submit Button -->
+      <div class="pt-4">
+        <button 
+          type="button"
+          (click)="saveProfile()"
+          [disabled]="saving() || !profileForm.valid"
+          class="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors">
+          {{ saving() ? 'Updating...' : 'Update Profile' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Change Password Tab -->
+  <div *ngIf="!loading() && activeTab() === 'password'" class="space-y-6">
+    <div class="bg-blue-900/20 border border-blue-700 rounded-lg p-4 text-sm text-blue-300">
+      <div class="flex gap-3">
+        <div>ℹ️</div>
+        <div>After changing your password, you will need to log in again with your new password.</div>
+      </div>
+    </div>
+
+    <form [formGroup]="passwordForm" class="space-y-4">
+      <!-- Current Password -->
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-2">Current Password</label>
+        <input 
+          type="password"
+          formControlName="currentPassword"
+          class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
+          placeholder="Enter current password">
+        <div *ngIf="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched" 
+             class="text-red-400 text-xs mt-1">
+          Current password is required
+        </div>
+      </div>
+
+      <!-- New Password -->
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-2">New Password</label>
+        <input 
+          type="password"
+          formControlName="newPassword"
+          class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
+          placeholder="Enter new password (min 8 characters)">
+        <div *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched" 
+             class="text-red-400 text-xs mt-1">
+          Password must be at least 8 characters
+        </div>
+      </div>
+
+      <!-- Confirm Password -->
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-2">Confirm New Password</label>
+        <input 
+          type="password"
+          formControlName="confirmPassword"
+          class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition-colors"
+          placeholder="Confirm new password">
+        <div *ngIf="passwordForm.get('confirmPassword')?.invalid && passwordForm.get('confirmPassword')?.touched" 
+             class="text-red-400 text-xs mt-1">
+          Confirm password is required
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="pt-4">
+        <button 
+          type="button"
+          (click)="changePassword()"
+          [disabled]="saving() || !passwordForm.valid"
+          class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors">
+          {{ saving() ? 'Changing...' : 'Change Password' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

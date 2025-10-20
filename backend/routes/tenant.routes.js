@@ -40,6 +40,7 @@ const allowOwnTenantAccess = (req, res, next) => {
 
 router.get('/:id', allowOwnTenantAccess, tenantController.getTenantById);
 router.put('/:id', checkScope('platform'), checkPermission('manage_tenants'), tenantController.updateTenant);
+router.patch('/:id/status', checkScope('platform'), checkPermission('manage_tenants'), tenantController.toggleTenantStatus);
 router.post('/:id/modules', checkScope('platform'), checkPermission('manage_tenants'), tenantController.toggleTenantModule);
 router.get('/:id/users', allowOwnTenantAccess, tenantController.getTenantUsers);
 

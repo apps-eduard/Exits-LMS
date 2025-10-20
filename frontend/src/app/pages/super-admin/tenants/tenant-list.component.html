@@ -114,6 +114,9 @@
                   <a [routerLink]="['/super-admin/tenants', tenant.id, 'edit']" class="text-blue-400 hover:text-blue-300 font-medium text-xs">
                     Edit
                   </a>
+                  <button (click)="toggleTenantStatus(tenant, $event)" class="text-yellow-400 hover:text-yellow-300 font-medium text-xs bg-transparent border-none cursor-pointer">
+                    Suspend
+                  </button>
                 </div>
               </td>
             </tr>
@@ -208,6 +211,9 @@
                   <a [routerLink]="['/super-admin/tenants', tenant.id, 'edit']" class="text-blue-400 hover:text-blue-300 font-medium text-xs">
                     Edit
                   </a>
+                  <button (click)="toggleTenantStatus(tenant, $event)" class="text-green-400 hover:text-green-300 font-medium text-xs bg-transparent border-none cursor-pointer">
+                    Activate
+                  </button>
                 </div>
               </td>
             </tr>

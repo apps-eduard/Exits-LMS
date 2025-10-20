@@ -18,6 +18,13 @@
   <!-- Tabs -->
   <div class="flex gap-2 mb-6 border-b border-gray-700">
     <button
+      (click)="setActiveTab('profile')"
+      [class.active]="activeTab() === 'profile'"
+      class="px-4 py-3 text-sm font-medium border-b-2 transition-colors"
+      [ngClass]="activeTab() === 'profile' ? 'text-purple-400 border-purple-400' : 'text-gray-400 border-transparent hover:text-gray-300'">
+      👤 Profile
+    </button>
+    <button
       (click)="setActiveTab('general')"
       [class.active]="activeTab() === 'general'"
       class="px-4 py-3 text-sm font-medium border-b-2 transition-colors"
@@ -45,6 +52,11 @@
       [ngClass]="activeTab() === 'features' ? 'text-purple-400 border-purple-400' : 'text-gray-400 border-transparent hover:text-gray-300'">
       🎯 Features
     </button>
+  </div>
+
+  <!-- Profile Tab -->
+  <div *ngIf="activeTab() === 'profile'" class="card">
+    <app-profile-settings></app-profile-settings>
   </div>
 
   <form [formGroup]="settingsForm">

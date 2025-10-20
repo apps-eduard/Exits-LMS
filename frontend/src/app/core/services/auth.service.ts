@@ -109,4 +109,32 @@ export class AuthService {
   getProfile(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/auth/profile`);
   }
+
+  updateProfile(profileData: { firstName: string; lastName: string; phone?: string; email?: string }): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/auth/profile`, profileData)
+      .pipe(
+        tap((response: any) => {
+          if (response.success && response.user) {
+            // Update current user in localStorage and subject
+            const currentUser = this.currentUserSubject.value;
+            if (currentUser) {
+              const updatedUser = {
+                ...currentUser,
+                firstName: response.user.firstName,
+                lastName: response.user.lastName,
+              };
+              if (response.user.email) {
+                updatedUser.email = response.user.email;
+              }
+              localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+              this.currentUserSubject.next(updatedUser);
+            }
+          }
+        })
+      );
+  }
+
+  changePassword(passwordData: { currentPassword: string; newPassword: string; confirmPassword: string }): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/auth/change-password`, passwordData);
+  }
 }
