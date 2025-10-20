@@ -13,6 +13,8 @@ interface TenantRow {
   subscription_plan: string;
   subscription_end?: string;
   contact_name?: string;
+  contact_first_name?: string;
+  contact_last_name?: string;
   contact_email: string;
   contact_phone?: string;
   modules: any[];

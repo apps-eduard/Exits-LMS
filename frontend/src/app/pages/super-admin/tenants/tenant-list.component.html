@@ -100,7 +100,7 @@
 
               <!-- Contact -->
               <td class="px-3 py-2">
-                <p class="text-white">{{ tenant.contact_name || 'N/A' }}</p>
+                <p class="text-white">{{ (tenant.contact_first_name ? tenant.contact_first_name + ' ' + (tenant.contact_last_name || '') : tenant.contact_name) || 'N/A' }}</p>
                 <p class="text-xs text-gray-500">{{ tenant.contact_email }}</p>
               </td>
 
@@ -194,7 +194,7 @@
 
               <!-- Contact -->
               <td class="px-3 py-2">
-                <p class="text-white">{{ tenant.contact_name || 'N/A' }}</p>
+                <p class="text-white">{{ (tenant.contact_first_name ? tenant.contact_first_name + ' ' + (tenant.contact_last_name || '') : tenant.contact_name) || 'N/A' }}</p>
                 <p class="text-xs text-gray-500">{{ tenant.contact_email }}</p>
               </td>
 
