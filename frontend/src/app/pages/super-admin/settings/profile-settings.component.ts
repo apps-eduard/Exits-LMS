@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService, User } from '../../../core/services/auth.service';
 import { ConfirmationDialogService } from '../../../core/services/confirmation-dialog.service';
 
@@ -26,7 +27,8 @@ export class ProfileSettingsComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private confirmationService: ConfirmationDialogService
+    private confirmationService: ConfirmationDialogService,
+    private router: Router
   ) {
     this.initializeForms();
   }
@@ -165,7 +167,7 @@ export class ProfileSettingsComponent implements OnInit {
           // Redirect to login after 2 seconds
           setTimeout(() => {
             this.authService.logout();
-            window.location.href = '/login';
+            this.router.navigate(['/login']);
           }, 2000);
         }
         this.saving.set(false);
