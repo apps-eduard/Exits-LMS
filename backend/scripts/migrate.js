@@ -299,6 +299,31 @@ const createTables = async () => {
       );
     `);
 
+    // Settings table
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS settings (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        key VARCHAR(255) NOT NULL UNIQUE,
+        value TEXT NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Tenant Settings table
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS tenant_settings (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        setting_key VARCHAR(255) NOT NULL,
+        setting_value TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(tenant_id, setting_key)
+      );
+    `);
+
     // Create indexes for performance
     await db.query(`
       CREATE INDEX IF NOT EXISTS idx_users_tenant_id ON users(tenant_id);
@@ -313,6 +338,9 @@ const createTables = async () => {
       CREATE INDEX IF NOT EXISTS idx_audit_logs_tenant_id ON audit_logs(tenant_id);
       CREATE INDEX IF NOT EXISTS idx_addresses_tenant_id ON addresses(tenant_id);
       CREATE INDEX IF NOT EXISTS idx_addresses_entity ON addresses(entity_type, entity_id);
+      CREATE INDEX IF NOT EXISTS idx_settings_key ON settings(key);
+      CREATE INDEX IF NOT EXISTS idx_tenant_settings_tenant_id ON tenant_settings(tenant_id);
+      CREATE INDEX IF NOT EXISTS idx_tenant_settings_key ON tenant_settings(setting_key);
     `);
 
     console.log('✅ All tables created successfully');
