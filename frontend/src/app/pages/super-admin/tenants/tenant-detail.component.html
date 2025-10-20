@@ -1,179 +1,233 @@
 <div class="p-4 lg:p-6">
   <!-- Loading State -->
-  <div *ngIf="loading" class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 flex items-center justify-center">
+  <div *ngIf="loading()" class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 flex items-center justify-center">
     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
   </div>
 
+  <!-- Error State -->
+  <div *ngIf="!loading() && error()" class="bg-red-900/30 border border-red-700 rounded-lg p-6 text-center">
+    <p class="text-sm text-red-400">{{ error() }}</p>
+    <a routerLink="/super-admin/tenants" class="text-purple-400 hover:text-purple-300 font-medium text-xs mt-3 inline-block">
+      ← Back to Tenants
+    </a>
+  </div>
+
   <!-- Content -->
-  <div *ngIf="!loading && tenant">
+  <div *ngIf="!loading() && !error() && tenant()">
     <!-- Header -->
-    <div class="mb-4 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <a routerLink="/super-admin/tenants" class="text-purple-400 hover:text-purple-300 font-medium text-xs">
+    <div class="mb-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a routerLink="/super-admin/tenants" class="text-purple-400 hover:text-purple-300 font-medium text-sm">
           ← Back
         </a>
-        <h1 class="text-xl font-bold text-white">{{ tenant.name }}</h1>
-        <span class="inline-block px-2 py-1 rounded text-xs font-semibold" [ngClass]="tenant.status === 'active' ? 'bg-green-900/30 text-green-300' : 'bg-gray-700/30 text-gray-300'">
-          {{ tenant.status }}
+        <h1 class="text-2xl font-bold text-white">{{ tenant().name }}</h1>
+        <span class="inline-block px-3 py-1 rounded text-xs font-semibold" 
+              [ngClass]="getStatusColor(tenant().status)">
+          {{ tenant().status | uppercase }}
         </span>
       </div>
-      <a [routerLink]="['/super-admin/tenants', tenant.id, 'edit']" class="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition">
-        ✏️ Edit
+      <a [routerLink]="['/super-admin/tenants', tenant().id, 'edit']" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-lg transition">
+        ✏️ Edit Tenant
       </a>
     </div>
 
     <!-- Quick Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-      <!-- Subscription -->
-      <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
-        <p class="text-xs text-gray-400 mb-1">Plan</p>
-        <p class="text-sm font-bold text-white">{{ tenant.subscription_plan || 'N/A' }}</p>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <!-- Subscription Plan -->
+      <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+        <p class="text-xs text-gray-400 mb-2">Subscription Plan</p>
+        <p class="text-lg font-bold text-white">{{ tenant().subscription_plan || 'N/A' }}</p>
       </div>
 
-      <!-- Users -->
-      <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
-        <p class="text-xs text-gray-400 mb-1">Users</p>
-        <p class="text-sm font-bold text-white">{{ users.length }}</p>
+      <!-- Users Count -->
+      <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+        <p class="text-xs text-gray-400 mb-2">Active Users</p>
+        <p class="text-lg font-bold text-white">{{ users().length }}</p>
       </div>
 
-      <!-- Created -->
-      <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-3">
-        <p class="text-xs text-gray-400 mb-1">Created</p>
-        <p class="text-sm font-bold text-white">{{ tenant.created_at | date:'short' }}</p>
+      <!-- Subdomain -->
+      <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+        <p class="text-xs text-gray-400 mb-2">Subdomain</p>
+        <p class="text-lg font-bold text-white font-mono">{{ tenant().subdomain || 'N/A' }}</p>
+      </div>
+
+      <!-- Created Date -->
+      <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+        <p class="text-xs text-gray-400 mb-2">Created</p>
+        <p class="text-lg font-bold text-white">{{ tenant().created_at | date:'short' }}</p>
       </div>
     </div>
 
-    <!-- Contact Information -->
-    <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-4">
-      <h2 class="text-sm font-bold text-white mb-3">Contact</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <!-- Contact Information Section -->
+    <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-6">
+      <h2 class="text-lg font-bold text-white mb-4">📋 Contact Information</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <p class="text-xs text-gray-400 mb-1">Name</p>
-          <p class="text-xs text-white">{{ tenant.contact_name || 'N/A' }}</p>
+          <p class="text-sm text-white font-medium">{{ tenant().contact_first_name }} {{ tenant().contact_last_name }}</p>
         </div>
         <div>
           <p class="text-xs text-gray-400 mb-1">Email</p>
-          <a [href]="'mailto:' + tenant.contact_email" class="text-xs text-purple-400 hover:text-purple-300">
-            {{ tenant.contact_email }}
+          <a [href]="'mailto:' + tenant().contact_email" class="text-sm text-purple-400 hover:text-purple-300">
+            {{ tenant().contact_email || 'N/A' }}
           </a>
         </div>
         <div>
           <p class="text-xs text-gray-400 mb-1">Phone</p>
-          <p class="text-xs text-white">{{ tenant.contact_phone || 'N/A' }}</p>
+          <p class="text-sm text-white">{{ tenant().contact_phone || 'N/A' }}</p>
         </div>
       </div>
     </div>
 
-    <!-- Module Configuration -->
-    <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-4">
-      <h2 class="text-sm font-bold text-white mb-3">Modules</h2>
-      
-      <div class="space-y-2">
+    <!-- Address Section (if available) -->
+    <div *ngIf="tenant().street_address" class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-6">
+      <h2 class="text-lg font-bold text-white mb-4">📍 Address</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div>
+          <p class="text-xs text-gray-400">Street</p>
+          <p class="text-white">{{ tenant().street_address }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400">Barangay</p>
+          <p class="text-white">{{ tenant().barangay }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400">City</p>
+          <p class="text-white">{{ tenant().city }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400">Province</p>
+          <p class="text-white">{{ tenant().province }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400">Region</p>
+          <p class="text-white">{{ tenant().region }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400">Postal Code</p>
+          <p class="text-white">{{ tenant().postal_code }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400">Country</p>
+          <p class="text-white">{{ tenant().country }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modules Section -->
+    <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 mb-6">
+      <h2 class="text-lg font-bold text-white mb-4">⚙️ Active Modules</h2>
+      <div class="space-y-3">
         <!-- Money-Loan Module -->
-        <div class="flex items-center justify-between p-2 bg-gray-900/50 rounded">
-          <div class="flex-1">
-            <p class="text-xs font-medium text-white">💰 Money-Loan</p>
+        <div class="flex items-center justify-between p-3 bg-gray-900/50 rounded-lg">
+          <div>
+            <p class="text-sm font-medium text-white">💰 Money-Loan</p>
+            <p class="text-xs text-gray-400">Loan management system</p>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold" [ngClass]="getModuleStatus('money-loan') ? 'bg-green-900/30 text-green-300' : 'bg-gray-700/30 text-gray-300'">
-              {{ getModuleStatus('money-loan') ? 'Enabled' : 'Disabled' }}
+          <div class="flex items-center gap-3">
+            <span class="inline-block px-3 py-1 rounded text-xs font-semibold" 
+                  [ngClass]="getModuleStatus('money-loan') ? 'bg-green-900/30 border border-green-700 text-green-400' : 'bg-gray-700/30 border border-gray-600 text-gray-400'">
+              {{ getModuleStatus('money-loan') ? '✓ Enabled' : 'Disabled' }}
             </span>
             <button 
               (click)="toggleModule('money-loan')" 
-              [disabled]="toggling['money-loan']"
-              class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium rounded transition disabled:opacity-50"
+              [disabled]="toggling()['money-loan']"
+              class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ toggling['money-loan'] ? '...' : (getModuleStatus('money-loan') ? 'Disable' : 'Enable') }}
+              {{ toggling()['money-loan'] ? '...' : (getModuleStatus('money-loan') ? 'Disable' : 'Enable') }}
             </button>
           </div>
         </div>
 
         <!-- Pawnshop Module -->
-        <div class="flex items-center justify-between p-2 bg-gray-900/50 rounded">
-          <div class="flex-1">
-            <p class="text-xs font-medium text-white">💍 Pawnshop</p>
+        <div class="flex items-center justify-between p-3 bg-gray-900/50 rounded-lg">
+          <div>
+            <p class="text-sm font-medium text-white">💍 Pawnshop</p>
+            <p class="text-xs text-gray-400">Pawnshop operations</p>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold" [ngClass]="getModuleStatus('pawnshop') ? 'bg-green-900/30 text-green-300' : 'bg-gray-700/30 text-gray-300'">
-              {{ getModuleStatus('pawnshop') ? 'Enabled' : 'Disabled' }}
+          <div class="flex items-center gap-3">
+            <span class="inline-block px-3 py-1 rounded text-xs font-semibold" 
+                  [ngClass]="getModuleStatus('pawnshop') ? 'bg-green-900/30 border border-green-700 text-green-400' : 'bg-gray-700/30 border border-gray-600 text-gray-400'">
+              {{ getModuleStatus('pawnshop') ? '✓ Enabled' : 'Disabled' }}
             </span>
             <button 
               (click)="toggleModule('pawnshop')" 
-              [disabled]="toggling['pawnshop']"
-              class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium rounded transition disabled:opacity-50"
+              [disabled]="toggling()['pawnshop']"
+              class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ toggling['pawnshop'] ? '...' : (getModuleStatus('pawnshop') ? 'Disable' : 'Enable') }}
+              {{ toggling()['pawnshop'] ? '...' : (getModuleStatus('pawnshop') ? 'Disable' : 'Enable') }}
             </button>
           </div>
         </div>
 
         <!-- BNPL Module -->
-        <div class="flex items-center justify-between p-2 bg-gray-900/50 rounded">
-          <div class="flex-1">
-            <p class="text-xs font-medium text-white">🛒 BNPL</p>
+        <div class="flex items-center justify-between p-3 bg-gray-900/50 rounded-lg">
+          <div>
+            <p class="text-sm font-medium text-white">🛒 BNPL (Buy Now Pay Later)</p>
+            <p class="text-xs text-gray-400">Buy now pay later services</p>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold" [ngClass]="getModuleStatus('bnpl') ? 'bg-green-900/30 text-green-300' : 'bg-gray-700/30 text-gray-300'">
-              {{ getModuleStatus('bnpl') ? 'Enabled' : 'Disabled' }}
+          <div class="flex items-center gap-3">
+            <span class="inline-block px-3 py-1 rounded text-xs font-semibold" 
+                  [ngClass]="getModuleStatus('bnpl') ? 'bg-green-900/30 border border-green-700 text-green-400' : 'bg-gray-700/30 border border-gray-600 text-gray-400'">
+              {{ getModuleStatus('bnpl') ? '✓ Enabled' : 'Disabled' }}
             </span>
             <button 
               (click)="toggleModule('bnpl')" 
-              [disabled]="toggling['bnpl']"
-              class="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium rounded transition disabled:opacity-50"
+              [disabled]="toggling()['bnpl']"
+              class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ toggling['bnpl'] ? '...' : (getModuleStatus('bnpl') ? 'Disable' : 'Enable') }}
+              {{ toggling()['bnpl'] ? '...' : (getModuleStatus('bnpl') ? 'Disable' : 'Enable') }}
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Users Table -->
+    <!-- Tenant Users Section -->
     <div class="bg-gray-800/50 border border-gray-700 rounded-lg overflow-hidden">
       <div class="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
-        <h2 class="text-sm font-bold text-white">Tenant Users</h2>
-        <button class="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium rounded transition">
-          + Add
-        </button>
+        <h2 class="text-lg font-bold text-white">👥 Tenant Users ({{ users().length }})</h2>
       </div>
 
-      <div *ngIf="loadingUsers" class="p-4 flex items-center justify-center">
+      <div *ngIf="loadingUsers()" class="p-6 flex items-center justify-center">
         <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
       </div>
 
-      <div *ngIf="!loadingUsers && users.length === 0" class="p-4 text-center">
-        <p class="text-xs text-gray-400">No users yet</p>
+      <div *ngIf="!loadingUsers() && users().length === 0" class="p-6 text-center">
+        <p class="text-sm text-gray-400">No users assigned to this tenant yet</p>
       </div>
 
-      <div *ngIf="!loadingUsers && users.length > 0" class="overflow-x-auto">
-        <table class="w-full text-xs">
+      <div *ngIf="!loadingUsers() && users().length > 0" class="overflow-x-auto">
+        <table class="w-full text-sm">
           <thead class="bg-gray-900/50 border-b border-gray-700">
             <tr>
-              <th class="px-3 py-2 text-left text-gray-400 font-semibold">User</th>
-              <th class="px-3 py-2 text-left text-gray-400 font-semibold">Email</th>
-              <th class="px-3 py-2 text-left text-gray-400 font-semibold">Role</th>
-              <th class="px-3 py-2 text-left text-gray-400 font-semibold">Status</th>
+              <th class="px-4 py-3 text-left text-gray-400 font-semibold">User</th>
+              <th class="px-4 py-3 text-left text-gray-400 font-semibold">Email</th>
+              <th class="px-4 py-3 text-left text-gray-400 font-semibold">Role</th>
+              <th class="px-4 py-3 text-left text-gray-400 font-semibold">Status</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let user of users" class="border-b border-gray-700 hover:bg-gray-700/30">
-              <td class="px-3 py-2">
+            <tr *ngFor="let user of users()" class="border-b border-gray-700 hover:bg-gray-700/30">
+              <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
-                  <div class="w-5 h-5 rounded bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xs text-white font-bold">
+                  <div class="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xs text-white font-bold">
                     {{ (user.full_name?.charAt(0) || user.email.charAt(0)).toUpperCase() }}
                   </div>
                   <span class="text-white font-medium">{{ user.full_name || 'N/A' }}</span>
                 </div>
               </td>
-              <td class="px-3 py-2 text-gray-300">{{ user.email }}</td>
-              <td class="px-3 py-2">
-                <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-blue-900/30 text-blue-300">
+              <td class="px-4 py-3 text-gray-300">{{ user.email }}</td>
+              <td class="px-4 py-3">
+                <span class="inline-block px-3 py-1 rounded text-xs font-semibold" 
+                      [ngClass]="getRoleColor(user.role_name)">
                   {{ user.role_name }}
                 </span>
               </td>
-              <td class="px-3 py-2">
-                <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold" [ngClass]="user.is_active ? 'bg-green-900/30 text-green-300' : 'bg-red-900/30 text-red-300'">
-                  {{ user.is_active ? 'Active' : 'Inactive' }}
+              <td class="px-4 py-3">
+                <span class="inline-block px-3 py-1 rounded text-xs font-semibold" 
+                      [ngClass]="user.is_active ? 'bg-green-900/30 border border-green-700 text-green-400' : 'bg-red-900/30 border border-red-700 text-red-400'">
+                  {{ user.is_active ? '✓ Active' : 'Inactive' }}
                 </span>
               </td>
             </tr>

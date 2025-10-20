@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TenantService } from '../../../core/services/tenant.service';
@@ -11,11 +11,12 @@ import { TenantService } from '../../../core/services/tenant.service';
   styles: []
 })
 export class TenantDetailComponent implements OnInit {
-  tenant: any = null;
-  users: any[] = [];
-  loading = true;
-  loadingUsers = false;
-  toggling: { [key: string]: boolean } = {};
+  readonly tenant = signal<any>(null);
+  readonly users = signal<any[]>([]);
+  readonly loading = signal(true);
+  readonly loadingUsers = signal(false);
+  readonly error = signal<string | null>(null);
+  readonly toggling = signal<{ [key: string]: boolean }>({});
 
   constructor(
     private route: ActivatedRoute,
@@ -31,80 +32,100 @@ export class TenantDetailComponent implements OnInit {
   }
 
   loadTenant(tenantId: string): void {
-    this.loading = true;
+    this.loading.set(true);
+    this.error.set(null);
     this.tenantService.getTenantById(tenantId).subscribe({
       next: (response) => {
-        if (response.success) {
-          this.tenant = response.tenant;
+        if (response.success && response.tenant) {
+          this.tenant.set(response.tenant);
+        } else if (response.tenant) {
+          this.tenant.set(response.tenant);
+        } else {
+          this.error.set('Failed to load tenant data');
         }
-        this.loading = false;
+        this.loading.set(false);
       },
       error: (error) => {
         console.error('Error loading tenant:', error);
-        this.loading = false;
+        this.error.set('Error loading tenant: ' + (error?.error?.error || 'Unknown error'));
+        this.loading.set(false);
       }
     });
   }
 
   loadUsers(tenantId: string): void {
-    this.loadingUsers = true;
+    this.loadingUsers.set(true);
     this.tenantService.getTenantUsers(tenantId).subscribe({
       next: (response) => {
-        if (response.success) {
-          this.users = response.users;
+        if (response.success && Array.isArray(response.users)) {
+          this.users.set(response.users);
+        } else if (Array.isArray(response.users)) {
+          this.users.set(response.users);
         }
-        this.loadingUsers = false;
+        this.loadingUsers.set(false);
       },
       error: (error) => {
         console.error('Error loading users:', error);
-        this.loadingUsers = false;
+        this.loadingUsers.set(false);
       }
     });
   }
 
   getModuleStatus(moduleName: string): boolean {
-    if (!this.tenant?.modules) return false;
-    const module = this.tenant.modules.find((m: any) => m.module === moduleName);
+    const currentTenant = this.tenant();
+    if (!currentTenant?.modules) return false;
+    const module = currentTenant.modules.find((m: any) => m.module === moduleName);
     return module?.enabled || false;
   }
 
   toggleModule(moduleName: string): void {
-    if (!this.tenant?.id) return;
+    const currentTenant = this.tenant();
+    if (!currentTenant?.id) return;
     
     const currentStatus = this.getModuleStatus(moduleName);
-    this.toggling[moduleName] = true;
+    const togglingObj = this.toggling();
+    togglingObj[moduleName] = true;
+    this.toggling.set(togglingObj);
 
-    this.tenantService.toggleModule(this.tenant.id, moduleName, !currentStatus).subscribe({
+    this.tenantService.toggleModule(currentTenant.id, moduleName, !currentStatus).subscribe({
       next: (response) => {
         if (response.success) {
-          // Reload tenant data to reflect changes
-          this.loadTenant(this.tenant.id);
+          this.loadTenant(currentTenant.id);
         }
-        this.toggling[moduleName] = false;
+        const togglingObj = this.toggling();
+        togglingObj[moduleName] = false;
+        this.toggling.set(togglingObj);
       },
       error: (error) => {
         console.error('Error toggling module:', error);
-        this.toggling[moduleName] = false;
+        const togglingObj = this.toggling();
+        togglingObj[moduleName] = false;
+        this.toggling.set(togglingObj);
       }
     });
   }
 
   getStatusColor(status: string): string {
-    const colors: { [key: string]: string } = {
-      'active': 'badge-success',
-      'trial': 'badge-warning',
-      'inactive': 'badge-danger',
-      'suspended': 'badge-info'
-    };
-    return colors[status] || 'badge-secondary';
+    switch (status) {
+      case 'active':
+        return 'bg-green-900/30 border border-green-700 text-green-400';
+      case 'trial':
+        return 'bg-blue-900/30 border border-blue-700 text-blue-400';
+      case 'inactive':
+        return 'bg-red-900/30 border border-red-700 text-red-400';
+      case 'suspended':
+        return 'bg-yellow-900/30 border border-yellow-700 text-yellow-400';
+      default:
+        return 'bg-gray-700/30 border border-gray-600 text-gray-400';
+    }
   }
 
   getRoleColor(roleName: string): string {
     const colors: { [key: string]: string } = {
-      'Tenant Admin': 'badge-primary',
-      'Loan Officer': 'badge-info',
-      'Cashier': 'badge-success'
+      'Tenant Admin': 'bg-blue-900/30 border border-blue-700 text-blue-400',
+      'Loan Officer': 'bg-cyan-900/30 border border-cyan-700 text-cyan-400',
+      'Cashier': 'bg-green-900/30 border border-green-700 text-green-400'
     };
-    return colors[roleName] || 'badge-secondary';
+    return colors[roleName] || 'bg-gray-700/30 border border-gray-600 text-gray-400';
   }
 }
