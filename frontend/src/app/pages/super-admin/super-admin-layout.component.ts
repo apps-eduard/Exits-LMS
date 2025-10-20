@@ -32,7 +32,13 @@ export class SuperAdminLayoutComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    console.log('[SUPER_ADMIN_LAYOUT] 🎯 Component initialized');
     this.authService.currentUser$.subscribe(user => {
+      console.log('[SUPER_ADMIN_LAYOUT] 👤 User loaded:', { 
+        id: user?.id, 
+        email: user?.email,
+        isLoaded: !!user 
+      });
       this.user = user;
       // Load menus when user is loaded
       if (user) {
@@ -45,11 +51,17 @@ export class SuperAdminLayoutComponent implements OnInit {
    * Load menus from backend based on user permissions
    */
   loadMenus(): void {
+    console.log('[SUPER_ADMIN_LAYOUT] 📋 Loading platform menus...');
     this.loadingMenu.set(true);
     this.menuError.set(null);
 
     this.menuService.getPlatformMenu().subscribe({
       next: (menu) => {
+        console.log('[SUPER_ADMIN_LAYOUT] ✅ Platform menu loaded:', {
+          sections: menu.length,
+          items: menu.reduce((sum, s) => sum + s.items.length, 0),
+          menu: menu
+        });
         this.navSections.set(menu);
         this.loadingMenu.set(false);
         // Expand first section by default
@@ -58,12 +70,13 @@ export class SuperAdminLayoutComponent implements OnInit {
         }
       },
       error: (error) => {
-        console.error('Failed to load platform menus:', error);
+        console.error('[SUPER_ADMIN_LAYOUT] ❌ Failed to load platform menus:', error);
         this.menuError.set('Failed to load menu. Using fallback.');
         this.loadingMenu.set(false);
         
         // Use fallback menu
         const fallback = this.menuService.getFallbackPlatformMenu();
+        console.log('[SUPER_ADMIN_LAYOUT] 📦 Using fallback menu:', fallback);
         this.navSections.set(fallback);
       }
     });

@@ -46,8 +46,13 @@ export class MenuService {
    * Get platform/super-admin menu
    */
   getPlatformMenu(): Observable<NavSection[]> {
+    console.log('[MENU_SERVICE] 🔍 getPlatformMenu called, cache status:', {
+      isCached: !!this.platformMenuCache()
+    });
+    
     // Return cached if available
     if (this.platformMenuCache()) {
+      console.log('[MENU_SERVICE] ✅ Returning cached platform menu');
       return new Observable(observer => {
         observer.next(this.platformMenuCache()!);
         observer.complete();
@@ -55,8 +60,13 @@ export class MenuService {
     }
 
     // Fetch from API
+    console.log('[MENU_SERVICE] 🌐 Fetching platform menu from API:', `${this.apiUrl}/platform`);
     return this.http.get<NavSection[]>(`${this.apiUrl}/platform`).pipe(
       tap(menu => {
+        console.log('[MENU_SERVICE] 📥 API Response received:', {
+          sections: menu.length,
+          items: menu.reduce((sum, s) => sum + s.items.length, 0)
+        });
         this.platformMenuCache.set(menu);
         this.platformMenuSubject.next(menu);
       })

@@ -47,8 +47,13 @@ export class TenantListComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    console.log('[TENANT_LIST] 🎯 Component initialized');
     // Subscribe to query parameters for pre-filtering (Active/Suspended tenants from sidebar)
     this.route.queryParams.subscribe(params => {
+      console.log('[TENANT_LIST] 🔗 Query param changed:', { 
+        status: params['status'],
+        allParams: params 
+      });
       if (params['status']) {
         console.log('[TENANT_LIST] 🔗 Query param detected:', { status: params['status'] });
         this.statusFilter.set(params['status']);
