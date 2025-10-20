@@ -1,12 +1,12 @@
-<div class="animate-fade-in p-6 lg:p-8">
+<div class="animate-fade-in p-4 lg:p-6">
   <!-- Page Header -->
-  <div class="mb-8">
-    <h1 class="text-3xl font-bold text-white">Settings</h1>
-    <p class="text-gray-400 mt-2">Configure platform-wide settings and features</p>
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-white">Settings</h1>
+    <p class="text-gray-400 mt-1 text-sm">Configure platform-wide settings and features</p>
   </div>
 
   <!-- Loading State -->
-  <div *ngIf="loading() && activeTab() !== 'profile'" class="bg-gray-800/50 border border-gray-700 rounded-lg p-12 flex items-center justify-center">
+  <div *ngIf="loading() && activeTab() !== 'profile'" class="bg-gray-800/50 border border-gray-700 rounded-lg p-8 flex items-center justify-center">
     <div class="flex flex-col items-center gap-4">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
       <p class="text-gray-400 text-sm">Loading settings...</p>
@@ -16,39 +16,39 @@
   <ng-container *ngIf="!loading() || activeTab() === 'profile'">
 
   <!-- Tabs -->
-  <div class="flex gap-2 mb-6 border-b border-gray-700">
+  <div class="flex gap-1 mb-6 border-b border-gray-700 overflow-x-auto">
     <button
       (click)="setActiveTab('profile')"
       [class.active]="activeTab() === 'profile'"
-      class="px-4 py-3 text-sm font-medium border-b-2 transition-colors"
+      class="px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap"
       [ngClass]="activeTab() === 'profile' ? 'text-purple-400 border-purple-400' : 'text-gray-400 border-transparent hover:text-gray-300'">
       👤 Profile
     </button>
     <button
       (click)="setActiveTab('general')"
       [class.active]="activeTab() === 'general'"
-      class="px-4 py-3 text-sm font-medium border-b-2 transition-colors"
+      class="px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap"
       [ngClass]="activeTab() === 'general' ? 'text-purple-400 border-purple-400' : 'text-gray-400 border-transparent hover:text-gray-300'">
       ⚙️ General
     </button>
     <button
       (click)="setActiveTab('email')"
       [class.active]="activeTab() === 'email'"
-      class="px-4 py-3 text-sm font-medium border-b-2 transition-colors"
+      class="px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap"
       [ngClass]="activeTab() === 'email' ? 'text-purple-400 border-purple-400' : 'text-gray-400 border-transparent hover:text-gray-300'">
       📧 Email
     </button>
     <button
       (click)="setActiveTab('security')"
       [class.active]="activeTab() === 'security'"
-      class="px-4 py-3 text-sm font-medium border-b-2 transition-colors"
+      class="px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap"
       [ngClass]="activeTab() === 'security' ? 'text-purple-400 border-purple-400' : 'text-gray-400 border-transparent hover:text-gray-300'">
       🔒 Security
     </button>
     <button
       (click)="setActiveTab('features')"
       [class.active]="activeTab() === 'features'"
-      class="px-4 py-3 text-sm font-medium border-b-2 transition-colors"
+      class="px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap"
       [ngClass]="activeTab() === 'features' ? 'text-purple-400 border-purple-400' : 'text-gray-400 border-transparent hover:text-gray-300'">
       🎯 Features
     </button>
@@ -61,48 +61,48 @@
 
   <form [formGroup]="settingsForm">
     <!-- General Settings -->
-    <div *ngIf="activeTab() === 'general'" class="space-y-6">
+    <div *ngIf="activeTab() === 'general'" class="space-y-4">
       <div class="card">
-        <h2 class="text-xl font-semibold text-white mb-6">General Settings</h2>
+        <h2 class="text-lg font-semibold text-white mb-4">General Settings</h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Platform Name -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Platform Name</label>
+            <label class="block text-xs font-medium text-gray-300 mb-1.5">Platform Name</label>
             <input
               type="text"
               formControlName="platformName"
-              class="input-field"
+              class="input-field text-sm py-1.5"
               placeholder="Enter platform name"
             />
           </div>
 
           <!-- Platform URL -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Platform URL</label>
+            <label class="block text-xs font-medium text-gray-300 mb-1.5">Platform URL</label>
             <input
               type="url"
               formControlName="platformUrl"
-              class="input-field"
+              class="input-field text-sm py-1.5"
               placeholder="https://example.com"
             />
           </div>
 
           <!-- Support Email -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Support Email</label>
+            <label class="block text-xs font-medium text-gray-300 mb-1.5">Support Email</label>
             <input
               type="email"
               formControlName="supportEmail"
-              class="input-field"
+              class="input-field text-sm py-1.5"
               placeholder="support@example.com"
             />
           </div>
 
           <!-- Timezone -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Timezone</label>
-            <select formControlName="timezone" class="input-field">
+            <label class="block text-xs font-medium text-gray-300 mb-1.5">Timezone</label>
+            <select formControlName="timezone" class="input-field text-sm py-1.5">
               <option value="UTC">UTC</option>
               <option value="EST">EST</option>
               <option value="CST">CST</option>
@@ -112,8 +112,8 @@
 
           <!-- Currency -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Currency</label>
-            <select formControlName="currency" class="input-field">
+            <label class="block text-xs font-medium text-gray-300 mb-1.5">Currency</label>
+            <select formControlName="currency" class="input-field text-sm py-1.5">
               <option value="USD">USD - US Dollar</option>
               <option value="EUR">EUR - Euro</option>
               <option value="GBP">GBP - British Pound</option>
@@ -125,76 +125,76 @@
     </div>
 
     <!-- Email Settings -->
-    <div *ngIf="activeTab() === 'email'" class="space-y-6">
+    <div *ngIf="activeTab() === 'email'" class="space-y-4">
       <div class="card">
-        <h2 class="text-xl font-semibold text-white mb-6">Email Configuration</h2>
+        <h2 class="text-lg font-semibold text-white mb-4">Email Configuration</h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- SMTP Host -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">SMTP Host</label>
+            <label class="block text-xs font-medium text-gray-300 mb-1.5">SMTP Host</label>
             <input
               type="text"
               formControlName="smtpHost"
-              class="input-field"
+              class="input-field text-sm py-1.5"
               placeholder="smtp.gmail.com"
             />
           </div>
 
           <!-- SMTP Port -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">SMTP Port</label>
+            <label class="block text-xs font-medium text-gray-300 mb-1.5">SMTP Port</label>
             <input
               type="number"
               formControlName="smtpPort"
-              class="input-field"
+              class="input-field text-sm py-1.5"
               placeholder="587"
             />
           </div>
 
           <!-- Sender Email -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Sender Email</label>
+            <label class="block text-xs font-medium text-gray-300 mb-1.5">Sender Email</label>
             <input
               type="email"
               formControlName="senderEmail"
-              class="input-field"
+              class="input-field text-sm py-1.5"
               placeholder="noreply@example.com"
             />
           </div>
 
           <!-- Sender Name -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Sender Name</label>
+            <label class="block text-xs font-medium text-gray-300 mb-1.5">Sender Name</label>
             <input
               type="text"
               formControlName="senderName"
-              class="input-field"
+              class="input-field text-sm py-1.5"
               placeholder="Exits LMS"
             />
           </div>
         </div>
 
-        <button type="button" (click)="testEmailConnection()" [disabled]="testingEmail()" class="btn-secondary mt-6">
+        <button type="button" (click)="testEmailConnection()" [disabled]="testingEmail()" class="btn-secondary mt-4 text-sm py-1.5">
           {{ testingEmail() ? '⏳ Testing...' : '🧪 Test Connection' }}
         </button>
-        <p *ngIf="emailTestMessage()" [class.text-green-400]="emailTestMessage().startsWith('✓')" [class.text-red-400]="emailTestMessage().startsWith('✗')" class="text-xs font-medium mt-3">{{ emailTestMessage() }}</p>
+        <p *ngIf="emailTestMessage()" [class.text-green-400]="emailTestMessage().startsWith('✓')" [class.text-red-400]="emailTestMessage().startsWith('✗')" class="text-xs font-medium mt-2">{{ emailTestMessage() }}</p>
       </div>
     </div>
 
     <!-- Security Settings -->
-    <div *ngIf="activeTab() === 'security'" class="space-y-6">
+    <div *ngIf="activeTab() === 'security'" class="space-y-4">
       <div class="card">
-        <h2 class="text-xl font-semibold text-white mb-6">Security Settings</h2>
+        <h2 class="text-lg font-semibold text-white mb-4">Security Settings</h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Password Min Length -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Minimum Password Length</label>
+            <label class="block text-xs font-medium text-gray-300 mb-1.5">Minimum Password Length</label>
             <input
               type="number"
               formControlName="passwordMinLength"
-              class="input-field"
+              class="input-field text-sm py-1.5"
               min="6"
               max="32"
             />
@@ -202,11 +202,11 @@
 
           <!-- Session Timeout -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Session Timeout (minutes)</label>
+            <label class="block text-xs font-medium text-gray-300 mb-1.5">Session Timeout (minutes)</label>
             <input
               type="number"
               formControlName="sessionTimeout"
-              class="input-field"
+              class="input-field text-sm py-1.5"
               min="5"
               max="480"
             />
@@ -214,11 +214,11 @@
 
           <!-- Login Attempts -->
           <div>
-            <label class="block text-sm font-medium text-gray-300 mb-2">Max Login Attempts</label>
+            <label class="block text-xs font-medium text-gray-300 mb-1.5">Max Login Attempts</label>
             <input
               type="number"
               formControlName="loginAttempts"
-              class="input-field"
+              class="input-field text-sm py-1.5"
               min="3"
               max="20"
             />
@@ -226,28 +226,28 @@
         </div>
 
         <!-- Toggles -->
-        <div class="space-y-4 mt-6">
-          <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
+        <div class="space-y-2 mt-4">
+          <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
             <div>
-              <p class="text-white font-medium">Two-Factor Authentication</p>
-              <p class="text-sm text-gray-400">Require 2FA for admin accounts</p>
+              <p class="text-white font-medium text-sm">Two-Factor Authentication</p>
+              <p class="text-xs text-gray-400">Require 2FA for admin accounts</p>
             </div>
             <input
               type="checkbox"
               formControlName="enableTwoFactor"
-              class="w-5 h-5 rounded"
+              class="w-4 h-4 rounded"
             />
           </div>
 
-          <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
+          <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
             <div>
-              <p class="text-white font-medium">API Keys</p>
-              <p class="text-sm text-gray-400">Enable API access for integrations</p>
+              <p class="text-white font-medium text-sm">API Keys</p>
+              <p class="text-xs text-gray-400">Enable API access for integrations</p>
             </div>
             <input
               type="checkbox"
               formControlName="enableApiKeys"
-              class="w-5 h-5 rounded"
+              class="w-4 h-4 rounded"
             />
           </div>
         </div>
@@ -255,76 +255,76 @@
     </div>
 
     <!-- Features -->
-    <div *ngIf="activeTab() === 'features'" class="space-y-6">
+    <div *ngIf="activeTab() === 'features'" class="space-y-4">
       <div class="card">
-        <h2 class="text-xl font-semibold text-white mb-6">Feature Management</h2>
+        <h2 class="text-lg font-semibold text-white mb-4">Feature Management</h2>
 
-        <div class="space-y-3">
+        <div class="space-y-2">
           <!-- Money Loan -->
-          <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
+          <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
             <div>
-              <p class="text-white font-medium">💰 Money-Loan Module</p>
-              <p class="text-sm text-gray-400">Allow tenants to use money-loan features</p>
+              <p class="text-white font-medium text-sm">💰 Money-Loan Module</p>
+              <p class="text-xs text-gray-400">Allow tenants to use money-loan features</p>
             </div>
             <button
               type="button"
               (click)="toggleFeature('moneyLoan')"
               [class.bg-green-600]="features().moneyLoan"
               [class.bg-gray-600]="!features().moneyLoan"
-              class="w-12 h-6 rounded-full transition-colors relative"
+              class="w-11 h-5 rounded-full transition-colors relative flex-shrink-0"
             >
-              <div [class.translate-x-6]="features().moneyLoan" [class.translate-x-1]="!features().moneyLoan" class="w-5 h-5 bg-white rounded-full transition-transform absolute top-0.5"></div>
+              <div [class.translate-x-6]="features().moneyLoan" [class.translate-x-1]="!features().moneyLoan" class="w-4 h-4 bg-white rounded-full transition-transform absolute top-0.5"></div>
             </button>
           </div>
 
           <!-- BNPL -->
-          <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
+          <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
             <div>
-              <p class="text-white font-medium">🛒 BNPL Module</p>
-              <p class="text-sm text-gray-400">Allow tenants to use BNPL features</p>
+              <p class="text-white font-medium text-sm">🛒 BNPL Module</p>
+              <p class="text-xs text-gray-400">Allow tenants to use BNPL features</p>
             </div>
             <button
               type="button"
               (click)="toggleFeature('bnpl')"
               [class.bg-green-600]="features().bnpl"
               [class.bg-gray-600]="!features().bnpl"
-              class="w-12 h-6 rounded-full transition-colors relative"
+              class="w-11 h-5 rounded-full transition-colors relative flex-shrink-0"
             >
-              <div [class.translate-x-6]="features().bnpl" [class.translate-x-1]="!features().bnpl" class="w-5 h-5 bg-white rounded-full transition-transform absolute top-0.5"></div>
+              <div [class.translate-x-6]="features().bnpl" [class.translate-x-1]="!features().bnpl" class="w-4 h-4 bg-white rounded-full transition-transform absolute top-0.5"></div>
             </button>
           </div>
 
           <!-- Advanced Analytics -->
-          <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
+          <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
             <div>
-              <p class="text-white font-medium">📊 Advanced Analytics</p>
-              <p class="text-sm text-gray-400">Enable advanced reporting and insights</p>
+              <p class="text-white font-medium text-sm">📊 Advanced Analytics</p>
+              <p class="text-xs text-gray-400">Enable advanced reporting and insights</p>
             </div>
             <button
               type="button"
               (click)="toggleFeature('advancedAnalytics')"
               [class.bg-green-600]="features().advancedAnalytics"
               [class.bg-gray-600]="!features().advancedAnalytics"
-              class="w-12 h-6 rounded-full transition-colors relative"
+              class="w-11 h-5 rounded-full transition-colors relative flex-shrink-0"
             >
-              <div [class.translate-x-6]="features().advancedAnalytics" [class.translate-x-1]="!features().advancedAnalytics" class="w-5 h-5 bg-white rounded-full transition-transform absolute top-0.5"></div>
+              <div [class.translate-x-6]="features().advancedAnalytics" [class.translate-x-1]="!features().advancedAnalytics" class="w-4 h-4 bg-white rounded-full transition-transform absolute top-0.5"></div>
             </button>
           </div>
 
           <!-- Custom Branding -->
-          <div class="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
+          <div class="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
             <div>
-              <p class="text-white font-medium">🎨 Custom Branding</p>
-              <p class="text-sm text-gray-400">Allow tenants to customize branding</p>
+              <p class="text-white font-medium text-sm">🎨 Custom Branding</p>
+              <p class="text-xs text-gray-400">Allow tenants to customize branding</p>
             </div>
             <button
               type="button"
               (click)="toggleFeature('customBranding')"
               [class.bg-green-600]="features().customBranding"
               [class.bg-gray-600]="!features().customBranding"
-              class="w-12 h-6 rounded-full transition-colors relative"
+              class="w-11 h-5 rounded-full transition-colors relative flex-shrink-0"
             >
-              <div [class.translate-x-6]="features().customBranding" [class.translate-x-1]="!features().customBranding" class="w-5 h-5 bg-white rounded-full transition-transform absolute top-0.5"></div>
+              <div [class.translate-x-6]="features().customBranding" [class.translate-x-1]="!features().customBranding" class="w-4 h-4 bg-white rounded-full transition-transform absolute top-0.5"></div>
             </button>
           </div>
         </div>
@@ -333,17 +333,17 @@
   </form>
 
   <!-- Save Button -->
-  <div class="flex items-center justify-between mt-8 bg-gray-800/50 p-6 rounded-lg border border-gray-700">
+  <div class="flex items-center justify-between mt-6 bg-gray-800/50 p-4 rounded-lg border border-gray-700">
     <div>
-      <p class="text-white font-medium">Save Changes</p>
-      <p class="text-sm text-gray-400">Click save to apply these settings platform-wide</p>
+      <p class="text-white font-medium text-sm">Save Changes</p>
+      <p class="text-xs text-gray-400">Click save to apply these settings platform-wide</p>
     </div>
     <div class="flex items-center gap-3">
-      <p *ngIf="savedMessage()" [class.text-green-400]="savedMessage().startsWith('✓')" [class.text-red-400]="savedMessage().startsWith('✗')" class="text-sm font-medium">{{ savedMessage() }}</p>
+      <p *ngIf="savedMessage()" [class.text-green-400]="savedMessage().startsWith('✓')" [class.text-red-400]="savedMessage().startsWith('✗')" class="text-xs font-medium">{{ savedMessage() }}</p>
       <button
         (click)="saveSettings()"
         [disabled]="saving()"
-        class="btn-primary px-6"
+        class="btn-primary px-5 py-1.5 text-sm"
       >
         {{ saving() ? '⏳ Saving...' : '💾 Save Settings' }}
       </button>
