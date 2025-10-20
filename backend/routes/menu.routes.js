@@ -52,7 +52,8 @@ const MENU_CONFIG = {
           id: 'active-tenants',
           label: 'Active Tenants',
           icon: '✅',
-          route: '/super-admin/tenants?status=active',
+          route: '/super-admin/tenants',
+          queryParams: { status: 'active' },
           description: 'View active tenants',
           permission: 'view_tenants'
         },
@@ -60,7 +61,8 @@ const MENU_CONFIG = {
           id: 'suspended-tenants',
           label: 'Suspended Tenants',
           icon: '⏸️',
-          route: '/super-admin/tenants?status=suspended',
+          route: '/super-admin/tenants',
+          queryParams: { status: 'suspended' },
           description: 'View suspended tenants',
           permission: 'view_tenants'
         },

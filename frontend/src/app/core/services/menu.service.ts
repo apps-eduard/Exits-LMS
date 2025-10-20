@@ -8,6 +8,7 @@ export interface NavItem {
   label: string;
   icon: string;
   route?: string;
+  queryParams?: Record<string, string | number | boolean>;
   badge?: number;
   children?: NavItem[];
   description?: string;
