@@ -267,13 +267,13 @@ const updateTenant = async (req, res) => {
       console.log('🔄 [UPDATING_EXISTING_ADDRESS]', { addressId: existingAddr.rows[0].id });
       await client.query(
         `UPDATE addresses SET
-          street_address = COALESCE(NULLIF($1, ''), street_address),
-          city = COALESCE(NULLIF($2, ''), city),
-          barangay = COALESCE(NULLIF($3, ''), barangay),
-          province = COALESCE(NULLIF($4, ''), province),
-          region = COALESCE(NULLIF($5, ''), region),
-          postal_code = COALESCE(NULLIF($6, ''), postal_code),
-          country = COALESCE(NULLIF($7, ''), country, 'Philippines'),
+          street_address = NULLIF($1, ''),
+          city = NULLIF($2, ''),
+          barangay = NULLIF($3, ''),
+          province = NULLIF($4, ''),
+          region = NULLIF($5, ''),
+          postal_code = NULLIF($6, ''),
+          country = COALESCE(NULLIF($7, ''), 'Philippines'),
           updated_at = CURRENT_TIMESTAMP
          WHERE id = $8`,
         [street_address, city, barangay, province, region, postal_code, country, existingAddr.rows[0].id]
