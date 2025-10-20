@@ -16,6 +16,7 @@ const customerRoutes = require('./routes/customer.routes');
 const userRoutes = require('./routes/user.routes');
 const settingsRoutes = require('./routes/settings.routes');
 const roleRoutes = require('./routes/role.routes');
+const menuRoutes = require('./routes/menu.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -61,6 +62,7 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/roles', roleRoutes);
+app.use('/api/menus', menuRoutes);
 
 // Direct permissions endpoint
 const authMiddleware = require('./middleware/auth.middleware');

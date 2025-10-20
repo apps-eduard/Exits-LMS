@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { UserService } from '../../../core/services/user.service';
+import { RbacService } from '../../../core/services/rbac.service';
 
 @Component({
   selector: 'app-user-form',
@@ -18,6 +19,7 @@ export class UserFormComponent implements OnInit {
   loading = false;
   submitting = false;
   error = '';
+  roles = signal<{ value: string; label: string }[]>([]);
   
   philipineProvinces = [
     'Abra', 'Agusan del Norte', 'Agusan del Sur', 'Aklan', 'Albay', 'Antique',
@@ -36,16 +38,11 @@ export class UserFormComponent implements OnInit {
     'Tukuran', 'Tulungan', 'Valenzuela', 'Western Samar', 'Zamboanga del Norte',
     'Zamboanga del Sur', 'Zamboanga Sibugay'
   ];
-  
-  roles = [
-    { value: 'Super Admin', label: 'Super Admin' },
-    { value: 'Support Staff', label: 'Support Staff' },
-    { value: 'Developer', label: 'Developer' }
-  ];
 
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
+    private rbacService: RbacService,
     private router: Router,
     private route: ActivatedRoute
   ) {
@@ -70,6 +67,8 @@ export class UserFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadRoles(); // Load available roles
+    
     this.userId = this.route.snapshot.paramMap.get('id');
     if (this.userId) {
       this.isEditMode = true;
@@ -83,6 +82,29 @@ export class UserFormComponent implements OnInit {
       
       this.loadUser();
     }
+  }
+
+  loadRoles(): void {
+    this.rbacService.getAllRoles().subscribe({
+      next: (response) => {
+        if (response.success && response.roles) {
+          // Filter for platform scope roles and map to dropdown format
+          const platformRoles = response.roles
+            .filter(r => r.scope === 'platform')
+            .map(r => ({
+              value: r.name,
+              label: r.name
+            }));
+          this.roles.set(platformRoles);
+          console.log('✅ Platform roles loaded for user assignment:', platformRoles);
+        }
+      },
+      error: (error) => {
+        console.error('❌ Failed to load roles:', error);
+        // Fallback to empty array if API fails
+        this.roles.set([]);
+      }
+    });
   }
 
   passwordMatchValidator(group: FormGroup): { [key: string]: any } | null {

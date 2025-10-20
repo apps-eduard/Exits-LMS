@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { UserService } from '../../../core/services/user.service';
+import { RbacService } from '../../../core/services/rbac.service';
 
 @Component({
   selector: 'app-user-form',
@@ -18,12 +19,7 @@ export class UserFormComponent implements OnInit {
   loading = false;
   submitting = false;
   error: string | null = null;
-
-  roles = [
-    { label: 'Administrator', value: 'admin' },
-    { label: 'Staff', value: 'staff' },
-    { label: 'User', value: 'user' }
-  ];
+  roles = signal<{ label: string; value: string }[]>([]);
 
   // Philippine Provinces (73)
   philipineProvinces = [
@@ -46,6 +42,7 @@ export class UserFormComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
+    private rbacService: RbacService,
     private router: Router,
     private route: ActivatedRoute
   ) {
@@ -72,12 +69,37 @@ export class UserFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadRoles(); // Load available roles
+    
     this.userId = this.route.snapshot.paramMap.get('id');
     if (this.userId) {
       this.isEditMode = true;
       this.makePasswordOptional();
       this.loadUser();
     }
+  }
+
+  loadRoles(): void {
+    this.rbacService.getAllRoles().subscribe({
+      next: (response) => {
+        if (response.success && response.roles) {
+          // Filter for tenant scope roles and map to dropdown format
+          const tenantRoles = response.roles
+            .filter(r => r.scope === 'tenant')
+            .map(r => ({
+              label: r.name,
+              value: r.name
+            }));
+          this.roles.set(tenantRoles);
+          console.log('✅ Tenant roles loaded for user assignment:', tenantRoles);
+        }
+      },
+      error: (error) => {
+        console.error('❌ Failed to load roles:', error);
+        // Fallback to empty array if API fails
+        this.roles.set([]);
+      }
+    });
   }
 
   makePasswordOptional(): void {

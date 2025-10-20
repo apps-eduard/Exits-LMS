@@ -4,22 +4,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/rou
 import { AuthService, User } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { TenantService } from '../../core/services/tenant.service';
-
-interface NavItem {
-  label: string;
-  icon: string;
-  route?: string;
-  badge?: number;
-  children?: NavItem[];
-  description?: string;
-  permission?: string;
-}
-
-interface NavSection {
-  title: string;
-  description?: string;
-  items: NavItem[];
-}
+import { MenuService, NavSection } from '../../core/services/menu.service';
 
 @Component({
   selector: 'app-tenant-layout',
@@ -35,334 +20,31 @@ export class TenantLayoutComponent implements OnInit {
   readonly tenantLoading = signal(true);
   readonly expandedSections = signal<Set<string>>(new Set());
   readonly expandedItems = signal<Set<string>>(new Set());
+  readonly loadingMenu = signal(false);
+  readonly menuError = signal<string | null>(null);
   
   currentUser: User | null = null;
 
-  // Improved tenant navigation structure
-  readonly navSections = signal<NavSection[]>([
-    {
-      title: 'Dashboard & Overview',
-      description: 'Quick snapshot of daily activity',
-      items: [
-        { 
-          label: 'Dashboard', 
-          icon: '🏠', 
-          route: '/tenant/dashboard',
-          description: 'Daily activity overview'
-        },
-        {
-          label: 'Analytics',
-          icon: '📊',
-          route: '/tenant/analytics',
-          description: 'Performance trends and insights'
-        }
-      ]
-    },
-    {
-      title: 'Customer Management',
-      description: 'Manage borrowers and borrower profiles',
-      items: [
-        { 
-          label: 'All Customers', 
-          icon: '👥', 
-          route: '/tenant/customers',
-          description: 'View all borrowers under this tenant'
-        },
-        { 
-          label: 'Add New Customer', 
-          icon: '➕', 
-          route: '/tenant/customers/create',
-          description: 'Register new borrower'
-        },
-        { 
-          label: 'Customer Profiles',
-          icon: '👤',
-          route: '/tenant/customers/profiles',
-          description: 'Personal info, history, balances'
-        },
-        {
-          label: 'Search & Filter',
-          icon: '🔍',
-          route: '/tenant/customers/search',
-          description: 'Find by name, ID, or contact'
-        }
-      ]
-    },
-    {
-      title: 'Loan Management',
-      description: 'Create, approve, and track loans',
-      items: [
-        { 
-          label: 'New Loan Application', 
-          icon: '📝', 
-          route: '/tenant/loans/create',
-          description: 'Create or approve a loan'
-        },
-        { 
-          label: 'Active Loans', 
-          icon: '💰', 
-          route: '/tenant/loans/active',
-          description: 'Currently running loans',
-          badge: 0
-        },
-        { 
-          label: 'Pending Approvals', 
-          icon: '⏳', 
-          route: '/tenant/loans/pending',
-          description: 'Awaiting approval',
-          badge: 0
-        },
-        { 
-          label: 'Fully Paid', 
-          icon: '✅', 
-          route: '/tenant/loans/paid',
-          description: 'Closed/completed loans'
-        },
-        { 
-          label: 'Overdue Loans', 
-          icon: '⚠️', 
-          route: '/tenant/loans/overdue',
-          description: 'Past due date',
-          badge: 0
-        },
-        {
-          label: 'Loan Actions',
-          icon: '⚙️',
-          children: [
-            { label: 'Approve', icon: '✔️', description: 'Approve pending loans' },
-            { label: 'Reject', icon: '❌', description: 'Reject applications' },
-            { label: 'Edit', icon: '✏️', description: 'Modify loan details' },
-            { label: 'Renew', icon: '🔄', description: 'Renew loan terms' },
-            { label: 'Print Contract', icon: '🖨️', description: 'Generate contract' }
-          ],
-          description: 'Loan operations'
-        }
-      ]
-    },
-    {
-      title: 'Collections & Payments',
-      description: 'Track payments and collections',
-      items: [
-        { 
-          label: 'Record Payment', 
-          icon: '💳', 
-          route: '/tenant/payments/new',
-          description: 'Record daily or automatic payment'
-        },
-        { 
-          label: 'Payment History', 
-          icon: '📋', 
-          route: '/tenant/payments/history',
-          description: 'All payment records per loan'
-        },
-        { 
-          label: 'Collections Summary', 
-          icon: '📊', 
-          route: '/tenant/payments/summary',
-          description: 'Daily, weekly, monthly summary'
-        },
-        {
-          label: 'Export Reports',
-          icon: '📥',
-          route: '/tenant/payments/export',
-          description: 'CSV/PDF financial reports'
-        }
-      ]
-    },
-    {
-      title: 'Optional Features',
-      description: 'Module-specific management',
-      items: [
-        { 
-          label: 'Pawn/Collateral', 
-          icon: '💍', 
-          route: '/tenant/pawnshop',
-          description: 'Pawned items, appraisals, redemption',
-          permission: 'pawnshop'
-        },
-        { 
-          label: 'BNPL Orders', 
-          icon: '🛒', 
-          route: '/tenant/bnpl',
-          description: 'Buy-now-pay-later orders',
-          permission: 'bnpl'
-        }
-      ]
-    },
-    {
-      title: 'Reports & Analytics',
-      description: 'Performance insights and trends',
-      items: [
-        { 
-          label: 'Loan Performance', 
-          icon: '📈', 
-          route: '/tenant/reports/loans',
-          description: 'Summary and trends'
-        },
-        { 
-          label: 'Collection Efficiency', 
-          icon: '💹', 
-          route: '/tenant/reports/efficiency',
-          description: 'Collection rate and metrics'
-        },
-        { 
-          label: 'Customer Trends', 
-          icon: '🎯', 
-          route: '/tenant/reports/customers',
-          description: 'Customer growth and segmentation'
-        },
-        {
-          label: 'Export Financial Summary',
-          icon: '📥',
-          route: '/tenant/reports/export',
-          description: 'Download comprehensive reports'
-        },
-        {
-          label: 'Branch Comparison',
-          icon: '🏢',
-          route: '/tenant/reports/branches',
-          description: 'Performance per branch',
-          permission: 'multi-branch'
-        },
-        {
-          label: 'Loan Officer Performance',
-          icon: '👨‍💼',
-          route: '/tenant/reports/officers',
-          description: 'Per loan officer metrics'
-        }
-      ]
-    },
-    {
-      title: 'Staff Management',
-      description: 'Internal users and permissions',
-      items: [
-        { 
-          label: 'All Users', 
-          icon: '👥', 
-          route: '/tenant/users',
-          description: 'Manage internal staff'
-        },
-        { 
-          label: 'Add User', 
-          icon: '➕', 
-          route: '/tenant/users/create',
-          description: 'Register new staff member'
-        },
-        {
-          label: 'Roles Setup',
-          icon: '🔑',
-          children: [
-            { label: 'Manager', icon: '👔', description: 'Full access & approvals' },
-            { label: 'Loan Officer', icon: '📋', description: 'Create & manage loans' },
-            { label: 'Cashier', icon: '💳', description: 'Record payments' },
-            { label: 'Viewer', icon: '👁️', description: 'Read-only access' }
-          ],
-          description: 'Role and permission management'
-        },
-        {
-          label: 'Activity Tracking',
-          icon: '📝',
-          route: '/tenant/users/activity',
-          description: 'Last login, actions, status'
-        }
-      ]
-    },
-    {
-      title: 'Branch Management',
-      description: 'Multi-branch configuration',
-      items: [
-        { 
-          label: 'Branches', 
-          icon: '🏢', 
-          route: '/tenant/branches',
-          description: 'Add/edit branches',
-          permission: 'multi-branch'
-        },
-        { 
-          label: 'Assign Staff', 
-          icon: '👥', 
-          route: '/tenant/branches/staff',
-          description: 'Assign users to branches',
-          permission: 'multi-branch'
-        },
-        {
-          label: 'Branch Performance',
-          icon: '📊',
-          route: '/tenant/branches/performance',
-          description: 'Monitor per branch',
-          permission: 'multi-branch'
-        }
-      ]
-    },
-    {
-      title: 'Settings',
-      description: 'Organization and configuration',
-      items: [
-        { 
-          label: 'Organization Profile', 
-          icon: '🏢', 
-          route: '/tenant/settings/profile',
-          description: 'Company info, logo, address'
-        },
-        { 
-          label: 'Loan Settings', 
-          icon: '💰', 
-          route: '/tenant/settings/loans',
-          description: 'Interest rates, terms, penalties'
-        },
-        {
-          label: 'Notification Settings',
-          icon: '🔔',
-          route: '/tenant/settings/notifications',
-          description: 'SMS, email preferences'
-        },
-        {
-          label: 'Integrations',
-          icon: '🔗',
-          route: '/tenant/settings/integrations',
-          description: 'Payment gateways, SMS API'
-        }
-      ]
-    },
-    {
-      title: 'Subscription & Billing',
-      description: 'Plan and payment information',
-      items: [
-        { 
-          label: 'Current Plan', 
-          icon: '📋', 
-          route: '/tenant/subscription/plan',
-          description: 'Show active subscription details'
-        },
-        { 
-          label: 'Renewal & Payment', 
-          icon: '💳', 
-          route: '/tenant/subscription/renewal',
-          description: 'Renewal date, payment method'
-        },
-        {
-          label: 'Upgrade/Downgrade',
-          icon: '⬆️',
-          route: '/tenant/subscription/change',
-          description: 'Change subscription plan'
-        }
-      ]
-    }
-  ]);
+  // Dynamic tenant navigation structure - loaded from backend
+  readonly navSections = signal<NavSection[]>([]);
 
   constructor(
     private authService: AuthService,
     public themeService: ThemeService,
     private tenantService: TenantService,
-    private router: Router
+    private router: Router,
+    private menuService: MenuService
   ) {}
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
     this.loadTenantInfo();
-    this.expandedSections.set(new Set(['Dashboard & Overview']));
+    this.loadMenus();
   }
 
+  /**
+   * Load tenant information
+   */
   loadTenantInfo(): void {
     const user = this.authService.getCurrentUser();
     const tenantId = user?.tenantId;
@@ -387,6 +69,34 @@ export class TenantLayoutComponent implements OnInit {
       console.warn('⚠️ [TENANT_LAYOUT] No tenant ID found in user');
       this.tenantLoading.set(false);
     }
+  }
+
+  /**
+   * Load menus from backend based on user permissions
+   */
+  loadMenus(): void {
+    this.loadingMenu.set(true);
+    this.menuError.set(null);
+
+    this.menuService.getTenantMenu().subscribe({
+      next: (menu) => {
+        this.navSections.set(menu);
+        this.loadingMenu.set(false);
+        // Expand first section by default
+        if (menu.length > 0) {
+          this.expandedSections.set(new Set([menu[0].title]));
+        }
+      },
+      error: (error) => {
+        console.error('Failed to load tenant menus:', error);
+        this.menuError.set('Failed to load menu. Using fallback.');
+        this.loadingMenu.set(false);
+        
+        // Use fallback menu
+        const fallback = this.menuService.getFallbackTenantMenu();
+        this.navSections.set(fallback);
+      }
+    });
   }
 
   toggleSidebar(): void {

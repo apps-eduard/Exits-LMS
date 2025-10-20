@@ -1,0 +1,172 @@
+<div class="p-4 lg:p-6">
+  <!-- Header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-white mb-2">Tenant Role Management</h1>
+      <p class="text-sm text-gray-400">Create and configure tenant-specific roles (tenant-admin, Loan Officer, Cashier)</p>
+    </div>
+    <button (click)="createNewRole()" 
+            class="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white text-sm font-semibold rounded-lg hover:shadow-lg transition">
+      ➕ Create Tenant Role
+    </button>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="flex gap-2 mb-6 border-b border-gray-700">
+    <button (click)="activeTab.set('roles')"
+            [class.border-b-2]="activeTab() === 'roles'"
+            [class.border-green-500]="activeTab() === 'roles'"
+            [class.text-green-400]="activeTab() === 'roles'"
+            class="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition">
+      👥 Tenant Roles ({{ roles().length }})
+    </button>
+    <button (click)="activeTab.set('permissions')" 
+            [disabled]="!selectedRole()"
+            [class.border-b-2]="activeTab() === 'permissions'"
+            [class.border-green-500]="activeTab() === 'permissions'"
+            [class.text-green-400]="activeTab() === 'permissions'"
+            class="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
+      ⚙️ Permissions
+    </button>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="space-y-4">
+    <!-- TAB 1: Tenant Roles -->
+    <div *ngIf="activeTab() === 'roles'" class="space-y-4">
+      <!-- Create/Edit Form -->
+      <div *ngIf="showCreateForm()" class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+        <h2 class="text-lg font-bold text-white mb-4">{{ editMode() ? '✏️ Edit Tenant Role' : '➕ Create New Tenant Role' }}</h2>
+        
+        <form [formGroup]="roleForm" class="space-y-4">
+          <!-- Role Name -->
+          <div>
+            <label class="block text-xs font-medium text-gray-300 mb-1">Role Name *</label>
+            <input type="text" formControlName="name" placeholder="e.g., Branch Manager"
+                   class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white placeholder-gray-500 focus:border-green-500 focus:outline-none"
+                   [class.border-red-600]="isFormInvalid('name')" />
+            <p *ngIf="isFormInvalid('name')" class="mt-1 text-xs text-red-400">{{ getFieldError('name') }}</p>
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label class="block text-xs font-medium text-gray-300 mb-1">Description *</label>
+            <textarea formControlName="description" placeholder="Describe the purpose of this tenant role..."
+                      rows="3"
+                      class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white placeholder-gray-500 focus:border-green-500 focus:outline-none"
+                      [class.border-red-600]="isFormInvalid('description')"></textarea>
+            <p *ngIf="isFormInvalid('description')" class="mt-1 text-xs text-red-400">{{ getFieldError('description') }}</p>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex gap-2 justify-end pt-4">
+            <button type="button" (click)="cancelForm()"
+                    class="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium rounded transition">
+              Cancel
+            </button>
+            <button type="button" (click)="saveRole()" [disabled]="saving()"
+                    class="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white text-xs font-semibold rounded hover:shadow-lg transition disabled:opacity-50">
+              {{ saving() ? '⏳ Saving...' : (editMode() ? '💾 Update' : '✨ Create') }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Roles List -->
+      <div class="space-y-2">
+        <div *ngIf="loading()" class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 flex items-center justify-center">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+        </div>
+
+        <div *ngFor="let role of roles()" 
+             class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:bg-gray-800/70 transition">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-white">{{ role.name }}</h3>
+                <span *ngIf="isProtectedRole(role.name)" class="text-xs px-2 py-1 rounded bg-yellow-900/30 text-yellow-300">
+                  🔒 Protected
+                </span>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">{{ role.description }}</p>
+              <div class="flex gap-2 mt-2">
+                <span class="text-xs px-2 py-1 rounded bg-green-900/30 text-green-300">
+                  🏢 Tenant
+                </span>
+                <span class="text-xs px-2 py-1 rounded bg-gray-700/30 text-gray-300">
+                  🔑 {{ getPermissionCount(role) }} permissions
+                </span>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button (click)="editRole(role)"
+                      class="px-2 py-1 bg-green-600/20 hover:bg-green-600/40 text-green-400 text-xs font-medium rounded transition">
+                ✏️ Edit
+              </button>
+              <button (click)="selectRoleForPermissions(role)"
+                      class="px-2 py-1 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 text-xs font-medium rounded transition">
+                🔐 Perms
+              </button>
+              <button (click)="deleteRole(role)"
+                      [disabled]="!canDeleteRole(role)"
+                      class="px-2 py-1 bg-red-600/20 hover:bg-red-600/40 text-red-400 text-xs font-medium rounded transition disabled:opacity-50 disabled:cursor-not-allowed">
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!loading() && roles().length === 0" class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 text-center">
+          <p class="text-sm text-gray-400">No tenant roles found.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Permissions -->
+    <div *ngIf="activeTab() === 'permissions' && selectedRole()" class="space-y-4">
+      <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+        <h2 class="text-lg font-bold text-white mb-4">
+          ⚙️ Configure Permissions for {{ selectedRole()!.name }}
+        </h2>
+        <p class="text-xs text-gray-400 mb-4">Select which permissions this tenant role has:</p>
+
+        <!-- Loading State -->
+        <div *ngIf="loadingPermissions()" class="flex items-center justify-center p-6">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+        </div>
+
+        <!-- Permission Groups (Dynamic) -->
+        <div *ngIf="!loadingPermissions()" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamic Categories -->
+          <div *ngFor="let item of getAllPermissionCategories()" 
+               class="bg-gray-700/30 rounded-lg p-3">
+            <h4 class="text-xs font-bold text-green-400 mb-2">
+              {{ item.category }}
+              <span class="text-gray-500">({{ item.permissions.length }})</span>
+            </h4>
+            <div class="space-y-2">
+              <label *ngFor="let perm of item.permissions"
+                     class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer hover:text-white transition">
+                <input type="checkbox" [checked]="hasPermission(perm.name)"
+                       (change)="togglePermission(perm.name)" class="w-3 h-3 accent-green-600">
+                <span title="{{ perm.description }}">{{ perm.name | titlecase }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- No Permissions Message -->
+          <div *ngIf="allPermissions().length === 0" class="col-span-full text-center p-6">
+            <p class="text-sm text-gray-400">No permissions available. Please refresh.</p>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="mt-4 p-3 bg-green-900/20 border border-green-700/50 rounded-lg">
+          <p class="text-xs text-green-300">
+            ✓ This tenant role has <strong>{{ getPermissionCount(selectedRole()!) }}</strong> permissions assigned
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

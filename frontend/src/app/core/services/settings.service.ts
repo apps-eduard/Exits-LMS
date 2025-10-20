@@ -21,7 +21,7 @@ export interface SettingsResponse {
   providedIn: 'root'
 })
 export class SettingsService {
-  private apiUrl = `${environment.apiUrl}/api/settings`;
+  private apiUrl = `${environment.apiUrl}/settings`;
 
   constructor(private http: HttpClient) {}
 

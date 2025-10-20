@@ -67,8 +67,8 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/super-admin/settings/settings.component').then(m => m.SettingsComponent)
       },
       {
-        path: 'settings/roles',
-        loadComponent: () => import('./pages/super-admin/settings/role-management.component').then(m => m.RoleManagementComponent)
+        path: 'settings/system-roles',
+        loadComponent: () => import('./pages/super-admin/settings/system-roles.component').then(m => m.SystemRolesComponent)
       }
     ]
   },
@@ -119,6 +119,10 @@ export const routes: Routes = [
         path: 'customers-loans',
         loadChildren: () => import('./modules/money-loan/money-loan.routes').then(m => m.MONEY_LOAN_ROUTES)
       },
+      {
+        path: 'settings/roles',
+        loadComponent: () => import('./pages/tenant/settings/tenant-roles.component').then(m => m.TenantRolesComponent)
+      }
     ]
   },
   {

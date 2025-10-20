@@ -1,0 +1,277 @@
+<div class="p-4 lg:p-6">
+  <!-- Header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-white mb-2">System Role Management</h1>
+      <p class="text-sm text-gray-400">Create and configure platform-wide roles (Super Admin, Support Staff, Developer)</p>
+    </div>
+    <button (click)="createNewRole()" 
+            class="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-semibold rounded-lg hover:shadow-lg transition">
+      ➕ Create System Role
+    </button>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="flex gap-2 mb-6 border-b border-gray-700">
+    <button (click)="activeTab.set('roles')"
+            [class.border-b-2]="activeTab() === 'roles'"
+            [class.border-purple-500]="activeTab() === 'roles'"
+            [class.text-purple-400]="activeTab() === 'roles'"
+            class="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition">
+      👥 System Roles ({{ roles().length }})
+    </button>
+    <button (click)="activeTab.set('permissions')" 
+            [disabled]="!selectedRole()"
+            [class.border-b-2]="activeTab() === 'permissions'"
+            [class.border-purple-500]="activeTab() === 'permissions'"
+            [class.text-purple-400]="activeTab() === 'permissions'"
+            class="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
+      ⚙️ Permissions
+    </button>
+    <button (click)="activeTab.set('users'); loadSystemUsers()"
+            [class.border-b-2]="activeTab() === 'users'"
+            [class.border-purple-500]="activeTab() === 'users'"
+            [class.text-purple-400]="activeTab() === 'users'"
+            class="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition">
+      👤 Users & Roles ({{ users().length }})
+    </button>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="space-y-4">
+    <!-- TAB 1: System Roles -->
+    <div *ngIf="activeTab() === 'roles'" class="space-y-4">
+      <!-- Create/Edit Form -->
+      <div *ngIf="showCreateForm()" class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+        <h2 class="text-lg font-bold text-white mb-4">{{ editMode() ? '✏️ Edit System Role' : '➕ Create New System Role' }}</h2>
+        
+        <form [formGroup]="roleForm" class="space-y-4">
+          <!-- Role Name -->
+          <div>
+            <label class="block text-xs font-medium text-gray-300 mb-1">Role Name *</label>
+            <input type="text" formControlName="name" placeholder="e.g., Platform Manager"
+                   class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+                   [class.border-red-600]="isFormInvalid('name')" />
+            <p *ngIf="isFormInvalid('name')" class="mt-1 text-xs text-red-400">{{ getFieldError('name') }}</p>
+          </div>
+
+          <!-- Description -->
+          <div>
+            <label class="block text-xs font-medium text-gray-300 mb-1">Description *</label>
+            <textarea formControlName="description" placeholder="Describe the purpose of this system role..."
+                      rows="3"
+                      class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+                      [class.border-red-600]="isFormInvalid('description')"></textarea>
+            <p *ngIf="isFormInvalid('description')" class="mt-1 text-xs text-red-400">{{ getFieldError('description') }}</p>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="flex gap-2 justify-end pt-4">
+            <button type="button" (click)="cancelForm()"
+                    class="px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white text-xs font-medium rounded transition">
+              Cancel
+            </button>
+            <button type="button" (click)="saveRole()" [disabled]="saving()"
+                    class="px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white text-xs font-semibold rounded hover:shadow-lg transition disabled:opacity-50">
+              {{ saving() ? '⏳ Saving...' : (editMode() ? '💾 Update' : '✨ Create') }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Roles List -->
+      <div class="space-y-2">
+        <div *ngIf="loading()" class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 flex items-center justify-center">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        </div>
+
+        <div *ngFor="let role of roles()" 
+             class="bg-gray-800/50 border border-gray-700 rounded-lg p-4 hover:bg-gray-800/70 transition">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-bold text-white">{{ role.name }}</h3>
+                <span *ngIf="isProtectedRole(role.name)" class="text-xs px-2 py-1 rounded bg-yellow-900/30 text-yellow-300">
+                  🔒 Protected
+                </span>
+              </div>
+              <p class="text-xs text-gray-400 mt-1">{{ role.description }}</p>
+              <div class="flex gap-2 mt-2">
+                <span class="text-xs px-2 py-1 rounded bg-purple-900/30 text-purple-300">
+                  🌐 Platform
+                </span>
+                <span class="text-xs px-2 py-1 rounded bg-gray-700/30 text-gray-300">
+                  🔑 {{ getPermissionCount(role) }} permissions
+                </span>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button (click)="editRole(role)"
+                      class="px-2 py-1 bg-purple-600/20 hover:bg-purple-600/40 text-purple-400 text-xs font-medium rounded transition">
+                ✏️ Edit
+              </button>
+              <button (click)="selectRoleForPermissions(role)"
+                      class="px-2 py-1 bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 text-xs font-medium rounded transition">
+                🔐 Perms
+              </button>
+              <button (click)="deleteRole(role)"
+                      [disabled]="!canDeleteRole(role)"
+                      class="px-2 py-1 bg-red-600/20 hover:bg-red-600/40 text-red-400 text-xs font-medium rounded transition disabled:opacity-50 disabled:cursor-not-allowed">
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!loading() && roles().length === 0" class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 text-center">
+          <p class="text-sm text-gray-400">No system roles found.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Permissions -->
+    <div *ngIf="activeTab() === 'permissions' && selectedRole()" class="space-y-4">
+      <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+        <h2 class="text-lg font-bold text-white mb-4">
+          ⚙️ Configure Permissions for {{ selectedRole()!.name }}
+        </h2>
+        <p class="text-xs text-gray-400 mb-4">Select which permissions this system role has:</p>
+
+        <!-- Loading State -->
+        <div *ngIf="loadingPermissions()" class="flex items-center justify-center p-6">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        </div>
+
+        <!-- Permission Groups (Dynamic) -->
+        <div *ngIf="!loadingPermissions()" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Dynamic Categories -->
+          <div *ngFor="let item of getAllPermissionCategories()" 
+               class="bg-gray-700/30 rounded-lg p-3">
+            <h4 class="text-xs font-bold text-purple-400 mb-2">
+              {{ item.category }}
+              <span class="text-gray-500">({{ item.permissions.length }})</span>
+            </h4>
+            <div class="space-y-2">
+              <label *ngFor="let perm of item.permissions"
+                     class="flex items-center gap-2 text-xs text-gray-300 cursor-pointer hover:text-white transition">
+                <input type="checkbox" [checked]="hasPermission(perm.name)"
+                       (change)="togglePermission(perm.name)" class="w-3 h-3 accent-purple-600">
+                <span title="{{ perm.description }}">{{ perm.name | titlecase }}</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- No Permissions Message -->
+          <div *ngIf="allPermissions().length === 0" class="col-span-full text-center p-6">
+            <p class="text-sm text-gray-400">No permissions available. Please refresh.</p>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="mt-4 p-3 bg-purple-900/20 border border-purple-700/50 rounded-lg">
+          <p class="text-xs text-purple-300">
+            ✓ This system role has <strong>{{ getPermissionCount(selectedRole()!) }}</strong> permissions assigned
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Users & Roles -->
+    <div *ngIf="activeTab() === 'users'" class="space-y-4">
+      <!-- Loading State -->
+      <div *ngIf="loadingUsers()" class="bg-gray-800/50 border border-gray-700 rounded-lg p-6 flex items-center justify-center">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+
+      <!-- Users Table -->
+      <div *ngIf="!loadingUsers()" class="bg-gray-800/50 border border-gray-700 rounded-lg overflow-hidden">
+        <div *ngIf="users().length === 0" class="p-6 text-center">
+          <p class="text-sm text-gray-400">No system users found.</p>
+        </div>
+
+        <div *ngIf="users().length > 0" class="overflow-x-auto">
+          <table class="w-full text-xs">
+            <!-- Table Header -->
+            <thead class="border-b border-gray-700 bg-gray-900/50">
+              <tr>
+                <th class="px-4 py-3 text-left font-medium text-gray-300">User</th>
+                <th class="px-4 py-3 text-left font-medium text-gray-300">Email</th>
+                <th class="px-4 py-3 text-left font-medium text-gray-300">Current Role</th>
+                <th class="px-4 py-3 text-center font-medium text-gray-300">Change Role</th>
+                <th class="px-4 py-3 text-center font-medium text-gray-300">Status</th>
+              </tr>
+            </thead>
+
+            <!-- Table Body -->
+            <tbody>
+              <tr *ngFor="let user of users()" class="border-b border-gray-700 hover:bg-gray-800/30 transition">
+                <!-- User Name -->
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-purple-600/30 flex items-center justify-center text-xs font-bold text-purple-300">
+                      {{ user.first_name.charAt(0) }}{{ user.last_name.charAt(0) }}
+                    </div>
+                    <span class="text-white font-medium">{{ user.first_name }} {{ user.last_name }}</span>
+                  </div>
+                </td>
+
+                <!-- Email -->
+                <td class="px-4 py-3 text-gray-400">{{ user.email }}</td>
+
+                <!-- Current Role Badge -->
+                <td class="px-4 py-3">
+                  <span [class]="getRoleColor(user.role_name)" class="px-2 py-1 rounded text-xs font-medium">
+                    {{ getRoleIcon(user.role_name) }} {{ user.role_name }}
+                  </span>
+                </td>
+
+                <!-- Role Assignment Dropdown -->
+                <td class="px-4 py-3 text-center">
+                  <select (change)="assignRoleToUser(user, $event)" 
+                          [disabled]="saving()"
+                          class="px-2 py-1 bg-gray-900 border border-gray-600 rounded text-xs text-white focus:border-purple-500 focus:outline-none cursor-pointer">
+                    <option value="">Assign role...</option>
+                    <option *ngFor="let role of roles()" 
+                            [value]="role.name"
+                            [selected]="userHasRole(user, role.name)">
+                      {{ role.name }}
+                    </option>
+                  </select>
+                </td>
+
+                <!-- Status -->
+                <td class="px-4 py-3 text-center">
+                  <span *ngIf="user.is_active" class="px-2 py-1 rounded-full bg-green-900/30 text-green-300 text-xs font-medium">
+                    ✓ Active
+                  </span>
+                  <span *ngIf="!user.is_active" class="px-2 py-1 rounded-full bg-red-900/30 text-red-300 text-xs font-medium">
+                    ✗ Inactive
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="bg-purple-900/20 border border-purple-700/50 rounded-lg p-4">
+        <h3 class="text-sm font-bold text-purple-300 mb-2">📊 Summary</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+          <div>
+            <p class="text-gray-400">Total Users</p>
+            <p class="text-xl font-bold text-white">{{ users().length }}</p>
+          </div>
+          <div>
+            <p class="text-gray-400">Active Users</p>
+            <p class="text-xl font-bold text-green-400">{{ getActiveUserCount() }}</p>
+          </div>
+          <div>
+            <p class="text-gray-400">Inactive Users</p>
+            <p class="text-xl font-bold text-red-400">{{ getInactiveUserCount() }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

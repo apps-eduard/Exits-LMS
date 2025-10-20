@@ -172,12 +172,31 @@ Write-Host "  Columns: Address fields added for multi-entity support" -Foregroun
 Write-Host "  Indexes: Performance optimized for multi-tenant queries" -ForegroundColor Gray
 Write-Host "  Foreign Keys: Full referential integrity enforced" -ForegroundColor Gray
 
+Write-Host ""
+Write-Host "Backend Components:" -ForegroundColor Yellow
+Write-Host "  Role Management APIs:" -ForegroundColor Green
+Write-Host "    - File: controllers/role.controller.js" -ForegroundColor Gray
+Write-Host "    - Routes: routes/role.routes.js" -ForegroundColor Gray
+Write-Host "    - Mount Point: /api/roles (in server.js)" -ForegroundColor Gray
+Write-Host "  API Endpoints:" -ForegroundColor Green
+Write-Host "    GET  /api/roles - Get all roles with aggregated permissions" -ForegroundColor Gray
+Write-Host "    GET  /api/roles/:id - Get single role by ID with permissions" -ForegroundColor Gray
+Write-Host "    POST /api/roles - Create new role (requires admin)" -ForegroundColor Gray
+Write-Host "    PUT  /api/roles/:id - Update existing role" -ForegroundColor Gray
+Write-Host "    DELETE /api/roles/:id - Delete role (protected roles cannot be deleted)" -ForegroundColor Gray
+Write-Host "    POST /api/roles/:id/permissions - Bulk assign permissions to role" -ForegroundColor Gray
+Write-Host "    GET  /api/permissions - Get all available permissions" -ForegroundColor Gray
+Write-Host "  Middleware Applied:" -ForegroundColor Green
+Write-Host "    - authMiddleware: Validates JWT token on all routes" -ForegroundColor Gray
+Write-Host "    - rbacMiddleware: Checks permissions for create/update/delete operations" -ForegroundColor Gray
+Write-Host ""
+
 # Seed initial data
 Write-Host ""
 Write-Host "Seeding initial data (roles, permissions, users)..." -ForegroundColor Yellow
 Write-Host "This will populate:" -ForegroundColor Cyan
 Write-Host "  - Platform roles (Super Admin, Support Staff, Developer)" -ForegroundColor Gray
-Write-Host "  - Tenant roles (Admin, Loan Officer, Cashier)" -ForegroundColor Gray
+Write-Host "  - Tenant roles (tenant-admin, Loan Officer, Cashier)" -ForegroundColor Gray
 Write-Host "  - Permissions and role-permission mappings" -ForegroundColor Gray
 Write-Host "  - Demo super admin account" -ForegroundColor Gray
 Write-Host "  - Demo tenant with sample admin user" -ForegroundColor Gray
@@ -232,6 +251,18 @@ if (-not (Test-Path ".env.local")) {
     Write-Host "frontend\.env.local found" -ForegroundColor Green
 }
 
+Write-Host ""
+Write-Host "Frontend Components:" -ForegroundColor Yellow
+Write-Host "  API Interceptor:" -ForegroundColor Green
+Write-Host "    - File: src/app/core/interceptors/api.interceptor.ts" -ForegroundColor Gray
+Write-Host "    - Purpose: Routes localhost:4200/api/* → localhost:3000/api/*" -ForegroundColor Gray
+Write-Host "    - Registration: app.config.ts (registered before authInterceptor)" -ForegroundColor Gray
+Write-Host "  Role Management UI:" -ForegroundColor Green
+Write-Host "    - Location: /super-admin/settings/roles" -ForegroundColor Gray
+Write-Host "    - Features: View, create, edit, delete roles and manage permissions" -ForegroundColor Gray
+Write-Host "    - Calls: /api/roles/* and /api/permissions endpoints" -ForegroundColor Gray
+Write-Host ""
+
 # Install frontend dependencies
 Write-Host ""
 Write-Host "Installing frontend dependencies..." -ForegroundColor Yellow
@@ -256,6 +287,20 @@ Write-Host ""
 Write-Host "Version: 2.0 - Database Improvements Edition" -ForegroundColor Green
 Write-Host ""
 
+Write-Host "API Endpoints Added:" -ForegroundColor Yellow
+Write-Host "  Role Management APIs:" -ForegroundColor Green
+Write-Host "    - GET /api/roles - List all roles with permissions" -ForegroundColor Gray
+Write-Host "    - GET /api/roles/:id - Get single role with permissions" -ForegroundColor Gray
+Write-Host "    - POST /api/roles - Create new role" -ForegroundColor Gray
+Write-Host "    - PUT /api/roles/:id - Update existing role" -ForegroundColor Gray
+Write-Host "    - DELETE /api/roles/:id - Delete role" -ForegroundColor Gray
+Write-Host "    - POST /api/roles/:id/permissions - Assign permissions to role" -ForegroundColor Gray
+Write-Host "    - GET /api/permissions - List all permissions" -ForegroundColor Gray
+Write-Host "  Frontend API Interceptor:" -ForegroundColor Green
+Write-Host "    - Automatically routes /api/* requests from port 4200 to port 3000" -ForegroundColor Gray
+Write-Host "    - Registered in app.config.ts before auth interceptor" -ForegroundColor Gray
+Write-Host ""
+
 Write-Host "Database Schema Status:" -ForegroundColor Yellow
 Write-Host "  Tenants table" -ForegroundColor Green
 Write-Host "    - contact_first_name and contact_last_name fields" -ForegroundColor Gray
@@ -267,6 +312,13 @@ Write-Host "    - address_id replacing legacy address TEXT field" -ForegroundCol
 Write-Host "  Addresses table" -ForegroundColor Green
 Write-Host "    - Multi-entity support (tenants, users, customers)" -ForegroundColor Gray
 Write-Host "    - Primary address tracking" -ForegroundColor Gray
+Write-Host "  Roles table" -ForegroundColor Green
+Write-Host "    - Columns: id, name, scope, description, created_at" -ForegroundColor Gray
+Write-Host "    - Note: No updated_at column (use created_at for read-only references)" -ForegroundColor Gray
+Write-Host "  Permissions table" -ForegroundColor Green
+Write-Host "    - Stores permission definitions (name, resource, action, description)" -ForegroundColor Gray
+Write-Host "  Role Permissions junction table" -ForegroundColor Green
+Write-Host "    - Maps roles to permissions with many-to-many relationship" -ForegroundColor Gray
 Write-Host ""
 
 Write-Host "Roles and Permissions:" -ForegroundColor Yellow
@@ -275,10 +327,17 @@ Write-Host "    - Super Admin: Full platform access with all permissions" -Foreg
 Write-Host "    - Support Staff: View audit logs, manage users, view customers/loans/payments" -ForegroundColor Gray
 Write-Host "    - Developer: Technical support with platform settings and audit access" -ForegroundColor Gray
 Write-Host "  Tenant Roles (for tenant-specific operations):" -ForegroundColor Green
-Write-Host "    - Tenant Admin: Full tenant access (manage customers, loans, users)" -ForegroundColor Gray
+Write-Host "    - tenant-admin: Full tenant access (manage customers, loans, users)" -ForegroundColor Gray
 Write-Host "    - Loan Officer: Manage loans, customers, and BNPL operations" -ForegroundColor Gray
 Write-Host "    - Cashier: Process payments and view transactions" -ForegroundColor Gray
-Write-Host "  Permissions: Fully mapped for RBAC" -ForegroundColor Green
+Write-Host "  Permissions (16 total):" -ForegroundColor Green
+Write-Host "    - Platform: manage_tenants, view_audit_logs, manage_platform_settings" -ForegroundColor Gray
+Write-Host "    - Users: manage_users" -ForegroundColor Gray
+Write-Host "    - Customers: manage_customers, view_customers" -ForegroundColor Gray
+Write-Host "    - Loans: manage_loans, approve_loans, view_loans, manage_loan_products" -ForegroundColor Gray
+Write-Host "    - Payments: process_payments, view_payments" -ForegroundColor Gray
+Write-Host "    - BNPL: manage_bnpl_merchants, manage_bnpl_orders, view_bnpl_orders" -ForegroundColor Gray
+Write-Host "    - Reports: view_reports" -ForegroundColor Gray
 Write-Host ""
 
 Write-Host "Features Enabled:" -ForegroundColor Yellow
