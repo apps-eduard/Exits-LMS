@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/user.controller');
+const auditController = require('../controllers/audit.controller');
 const authenticate = require('../middleware/auth.middleware');
 const { checkScope, checkPermission } = require('../middleware/rbac.middleware');
 const tenantIsolation = require('../middleware/tenant-isolation.middleware');
@@ -14,6 +15,9 @@ router.post('/', authenticate, checkScope('platform'), checkPermission('manage_u
 
 // Activity logs route (must be before /:id to avoid route collision)
 router.get('/activity', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.getActivityLogs);
+
+// Audit logs route (must be before /:id to avoid route collision)
+router.get('/audit', authenticate, checkScope('platform'), checkPermission('view_audit_logs'), auditController.getAuditLogs);
 
 router.get('/:id', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.getUserById);
 router.put('/:id', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.updateUser);

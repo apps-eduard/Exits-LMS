@@ -1,17 +1,22 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { ReplacePipe, FilterByStatusPipe } from './audit-logs.pipes';
 
 interface AuditLog {
   id: string;
-  user: string;
+  user_email?: string;
+  first_name?: string;
+  last_name?: string;
   action: string;
   resource: string;
-  details: string;
-  status: 'success' | 'failed' | 'pending';
-  ip_address: string;
-  timestamp: string;
+  details?: string;
+  resource_id?: string;
+  ip_address?: string;
+  user_agent?: string;
+  created_at: string;
+  status?: 'success' | 'failed' | 'pending';
 }
 
 @Component({
@@ -22,13 +27,15 @@ interface AuditLog {
   styleUrl: './audit-logs.component.scss'
 })
 export class AuditLogsComponent implements OnInit {
+  private http = inject(HttpClient);
+
   readonly auditLogs = signal<AuditLog[]>([]);
   readonly filteredLogs = signal<AuditLog[]>([]);
   readonly loading = signal(true);
   readonly searchTerm = signal('');
   readonly filterAction = signal('all');
   readonly filterStatus = signal('all');
-  readonly filterDateRange = signal('today');
+  readonly filterDateRange = signal('30');
 
   ngOnInit(): void {
     this.loadAuditLogs();
@@ -36,65 +43,38 @@ export class AuditLogsComponent implements OnInit {
 
   loadAuditLogs(): void {
     this.loading.set(true);
-    // Mock data - replace with actual API call
-    setTimeout(() => {
-      const mockLogs: AuditLog[] = [
-        {
-          id: '1',
-          user: 'admin@platform.com',
-          action: 'CREATE_TENANT',
-          resource: 'Tenant',
-          details: 'Created new tenant: Tech Corp Inc',
-          status: 'success',
-          ip_address: '192.168.1.1',
-          timestamp: new Date(Date.now() - 5 * 60000).toISOString()
+    const days = this.filterDateRange() || '30';
+    
+    this.http.get<any>(`/api/users/audit?days=${days}`)
+      .subscribe({
+        next: (response) => {
+          if (response.auditLogs && Array.isArray(response.auditLogs)) {
+            // Transform API response to component interface
+            const transformedLogs = response.auditLogs.map((log: any) => ({
+              id: log.id,
+              user_email: log.user_email || 'System',
+              first_name: log.first_name,
+              last_name: log.last_name,
+              action: log.action,
+              resource: log.resource,
+              details: log.details ? (typeof log.details === 'string' ? log.details : JSON.stringify(log.details)) : '',
+              resource_id: log.resource_id,
+              ip_address: log.ip_address || 'N/A',
+              user_agent: log.user_agent,
+              created_at: log.created_at,
+              status: 'success' as const
+            }));
+            
+            this.auditLogs.set(transformedLogs);
+            this.filteredLogs.set(transformedLogs);
+          }
+          this.loading.set(false);
         },
-        {
-          id: '2',
-          user: 'admin@platform.com',
-          action: 'UPDATE_TENANT',
-          resource: 'Tenant',
-          details: 'Updated subscription plan to Premium',
-          status: 'success',
-          ip_address: '192.168.1.1',
-          timestamp: new Date(Date.now() - 15 * 60000).toISOString()
-        },
-        {
-          id: '3',
-          user: 'viewer@platform.com',
-          action: 'VIEW_REPORT',
-          resource: 'Report',
-          details: 'Accessed platform analytics',
-          status: 'success',
-          ip_address: '192.168.1.50',
-          timestamp: new Date(Date.now() - 30 * 60000).toISOString()
-        },
-        {
-          id: '4',
-          user: 'admin@platform.com',
-          action: 'DELETE_USER',
-          resource: 'User',
-          details: 'Deleted user: test@example.com',
-          status: 'success',
-          ip_address: '192.168.1.1',
-          timestamp: new Date(Date.now() - 60 * 60000).toISOString()
-        },
-        {
-          id: '5',
-          user: 'admin@platform.com',
-          action: 'LOGIN_FAILED',
-          resource: 'Authentication',
-          details: 'Failed login attempt',
-          status: 'failed',
-          ip_address: '192.168.1.100',
-          timestamp: new Date(Date.now() - 2 * 3600000).toISOString()
+        error: (error) => {
+          console.error('Failed to load audit logs:', error);
+          this.loading.set(false);
         }
-      ];
-
-      this.auditLogs.set(mockLogs);
-      this.filteredLogs.set(mockLogs);
-      this.loading.set(false);
-    }, 1000);
+      });
   }
 
   onSearch(): void {
@@ -111,6 +91,11 @@ export class AuditLogsComponent implements OnInit {
     this.applyFilters();
   }
 
+  onFilterDateRangeChange(value: string): void {
+    this.filterDateRange.set(value);
+    this.loadAuditLogs();
+  }
+
   onSearchChange(value: string): void {
     this.searchTerm.set(value);
     this.onSearch();
@@ -121,10 +106,12 @@ export class AuditLogsComponent implements OnInit {
 
     // Search filter
     if (this.searchTerm()) {
+      const term = this.searchTerm().toLowerCase();
       filtered = filtered.filter(log =>
-        log.user.toLowerCase().includes(this.searchTerm().toLowerCase()) ||
-        log.action.toLowerCase().includes(this.searchTerm().toLowerCase()) ||
-        log.details.toLowerCase().includes(this.searchTerm().toLowerCase())
+        (log.user_email && log.user_email.toLowerCase().includes(term)) ||
+        (log.action && log.action.toLowerCase().includes(term)) ||
+        (log.details && log.details.toLowerCase().includes(term)) ||
+        (log.resource && log.resource.toLowerCase().includes(term))
       );
     }
 

@@ -103,7 +103,7 @@
           <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
             <div>
               <span class="text-gray-500">User:</span>
-              <p class="text-gray-300">{{ log.user }}</p>
+              <p class="text-gray-300">{{ log.user_email }}</p>
             </div>
             <div>
               <span class="text-gray-500">Resource:</span>
@@ -115,7 +115,7 @@
             </div>
             <div>
               <span class="text-gray-500">Time:</span>
-              <p class="text-gray-300">{{ log.timestamp | date: 'short' }}</p>
+              <p class="text-gray-300">{{ log.created_at | date: 'short' }}</p>
             </div>
           </div>
         </div>
