@@ -16,7 +16,7 @@ interface AuditLog {
   ip_address?: string;
   user_agent?: string;
   created_at: string;
-  status?: 'success' | 'failed' | 'pending';
+  status: 'success' | 'failed' | 'pending';
 }
 
 @Component({
@@ -62,7 +62,7 @@ export class AuditLogsComponent implements OnInit {
               ip_address: log.ip_address || 'N/A',
               user_agent: log.user_agent,
               created_at: log.created_at,
-              status: 'success' as const
+              status: log.status || 'success' as const
             }));
             
             this.auditLogs.set(transformedLogs);
