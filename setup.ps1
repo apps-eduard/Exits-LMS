@@ -223,6 +223,34 @@ Write-Host "  Permissions for all roles" -ForegroundColor Gray
 Write-Host "  Super Admin user account" -ForegroundColor Gray
 Write-Host "  Demo tenant with admin user" -ForegroundColor Gray
 
+# Seed settings data
+Write-Host ""
+Write-Host "Seeding platform settings..." -ForegroundColor Yellow
+Write-Host "This will populate default settings including:" -ForegroundColor Cyan
+Write-Host "  - Platform configuration (name, URL, timezone)" -ForegroundColor Gray
+Write-Host "  - Email settings (SMTP, sender info)" -ForegroundColor Gray
+Write-Host "  - Feature flags (modules, analytics, branding)" -ForegroundColor Gray
+Write-Host "  - Security settings (password requirements, session timeout)" -ForegroundColor Gray
+Write-Host ""
+npm run seed:settings 2>&1
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "Settings seeding failed!" -ForegroundColor Red
+    Write-Host "Please check the error messages above" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Note: If this is the first run, settings will be seeded when the backend starts" -ForegroundColor Yellow
+    Write-Host "  - Run: npm run seed:settings" -ForegroundColor Gray
+} else {
+    Write-Host "Platform settings seeded successfully" -ForegroundColor Green
+}
+Write-Host ""
+Write-Host "Seeded settings include:" -ForegroundColor Cyan
+Write-Host "  Platform (name, URL, support email, timezone, currency)" -ForegroundColor Gray
+Write-Host "  Email (SMTP host, port, sender email/name)" -ForegroundColor Gray
+Write-Host "  Features (email notifications, 2FA, modules, analytics)" -ForegroundColor Gray
+Write-Host "  Security (password length, session timeout, login attempts)" -ForegroundColor Gray
+
 # Navigate back
 Set-Location -Path ".."
 
@@ -411,6 +439,7 @@ Write-Host "  1. Drop database: psql -U postgres -c 'DROP DATABASE IF EXISTS exi
 Write-Host "  2. Create database: psql -U postgres -c 'CREATE DATABASE exits_lms;'" -ForegroundColor Gray
 Write-Host "  3. Run migration: cd backend && npm run migrate" -ForegroundColor Gray
 Write-Host "  4. Seed data: npm run seed" -ForegroundColor Gray
+Write-Host "  5. Seed settings: npm run seed:settings" -ForegroundColor Gray
 Write-Host ""
 
 Write-Host "Troubleshooting:" -ForegroundColor Yellow
