@@ -99,7 +99,7 @@
           <div class="grid grid-cols-2 gap-2 text-xs">
             <div>
               <p class="text-gray-400">Last Modified</p>
-              <p class="text-white">{{ selectedTemplate()!.lastModified | date: 'short' || 'Never' }}</p>
+              <p class="text-white">{{ (selectedTemplate()!.lastModified || 'Never') | date: 'short' }}</p>
             </div>
             <div>
               <p class="text-gray-400">Status</p>
@@ -158,12 +158,13 @@
             <input
               type="text"
               formControlName="subject"
-              placeholder="e.g., Welcome to {{organizationName}}"
+              placeholder="e.g., Welcome to Exits LMS"
               class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-xs text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
               [class.border-red-500]="isFieldInvalid('subject')"
+              title="Email subject line with variables"
             />
             <p *ngIf="isFieldInvalid('subject')" class="text-red-400 text-xs mt-1">{{ getFieldError('subject') }}</p>
-            <p class="text-gray-500 text-[10px] mt-1">💡 Use {{variable}} format for dynamic content</p>
+            <p class="text-gray-500 text-[10px] mt-1">💡 Use {{ '{' }}{{ '{' }}<span class="text-purple-400">variable</span>{{ '}' }}{{ '}' }} format for dynamic content</p>
           </div>
 
           <!-- Body -->
@@ -177,7 +178,7 @@
               [class.border-red-500]="isFieldInvalid('body')"
             ></textarea>
             <p *ngIf="isFieldInvalid('body')" class="text-red-400 text-xs mt-1">{{ getFieldError('body') }}</p>
-            <p class="text-gray-500 text-[10px] mt-1">💡 Available variables: {{firstName}}, {{lastName}}, {{email}}, {{organizationName}}</p>
+            <p class="text-gray-500 text-[10px] mt-1">💡 Available variables: {{ '{' }}{{ '{' }}<span class="text-purple-400">firstName</span>{{ '}' }}{{ '}' }}, {{ '{' }}{{ '{' }}<span class="text-purple-400">lastName</span>{{ '}' }}{{ '}' }}, {{ '{' }}{{ '{' }}<span class="text-purple-400">email</span>{{ '}' }}{{ '}' }}, {{ '{' }}{{ '{' }}<span class="text-purple-400">organizationName</span>{{ '}' }}{{ '}' }}</p>
           </div>
 
           <!-- Form Actions -->
@@ -217,7 +218,7 @@
           </div>
 
           <!-- Variables -->
-          <div *ngIf="selectedTemplate()!.variables && selectedTemplate()!.variables.length > 0" class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+          <div *ngIf="selectedTemplate()!.variables?.length" class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
             <p class="text-xs text-gray-400 mb-2">Available Variables</p>
             <div class="flex flex-wrap gap-2">
               <span
