@@ -799,6 +799,66 @@ const deleteTenantUser = async (req, res) => {
   }
 };
 
+// Get user activity logs (platform-wide)
+const getActivityLogs = async (req, res) => {
+  try {
+    const { days = '7', action, entity, user } = req.query;
+    const daysNum = parseInt(days) || 7;
+
+    logger.trace('getActivityLogs', 'ENTER', { 
+      days: daysNum, 
+      action, 
+      entity, 
+      user,
+      requestedBy: req.user?.id 
+    });
+
+    let query = `
+      SELECT 
+        id, user_id, user_email, action, description,
+        entity_type, entity_id, details, ip_address, user_agent,
+        created_at
+      FROM activity_logs
+      WHERE created_at >= NOW() - INTERVAL '${daysNum} days'
+    `;
+
+    const params = [];
+
+    if (user) {
+      params.push(`%${user}%`);
+      query += ` AND user_email ILIKE $${params.length}`;
+    }
+
+    if (action && action !== 'all') {
+      params.push(action);
+      query += ` AND action = $${params.length}`;
+    }
+
+    if (entity && entity !== 'all') {
+      params.push(entity);
+      query += ` AND entity_type = $${params.length}`;
+    }
+
+    query += ` ORDER BY created_at DESC LIMIT 1000`;
+
+    const result = await db.query(query, params);
+
+    logger.success('Fetched activity logs', {
+      count: result.rows.length,
+      filters: { days: daysNum, action, entity, user },
+    });
+
+    res.json({
+      success: true,
+      activities: result.rows || [],
+      count: result.rows.length,
+    });
+  } catch (error) {
+    logger.error('getActivityLogs', 'Failed to fetch activity logs', { error: error.message });
+    res.status(500).json({ error: 'Failed to fetch activity logs' });
+  }
+};
+
 module.exports = {
   getAllUsers,
   getUserById,
@@ -815,4 +875,5 @@ module.exports = {
   updateTenantUser,
   toggleTenantUserStatus,
   deleteTenantUser,
+  getActivityLogs,
 };

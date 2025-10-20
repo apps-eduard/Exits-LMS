@@ -11,6 +11,10 @@ router.get('/roles/list', authenticate, userController.getRoles);
 // Super Admin routes (platform scope)
 router.get('/', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.getAllUsers);
 router.post('/', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.createUser);
+
+// Activity logs route (must be before /:id to avoid route collision)
+router.get('/activity', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.getActivityLogs);
+
 router.get('/:id', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.getUserById);
 router.put('/:id', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.updateUser);
 router.patch('/:id/status', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.toggleUserStatus);
