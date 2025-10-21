@@ -630,9 +630,19 @@ Write-Host "    ✓ Updated permission-matrix to include menu assignment tab" -F
 Write-Host "  Database Improvements:" -ForegroundColor Green
 Write-Host "    ✓ Made street_address nullable to support partial address entry" -ForegroundColor Gray
 Write-Host "    ✓ Created role_menus junction table with cascading deletes" -ForegroundColor Gray
-Write-Host "    ✓ Auto-seeded protected roles with all menus" -ForegroundColor Gray
+Write-Host "    - Auto-seeded protected roles with all menus" -ForegroundColor Gray
 Write-Host ""
 
-Write-Host "Happy coding! Application is ready for development." -ForegroundColor Green
-Write-Host "Report issues: https://github.com/apps-eduard/Exits-LMS" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host "  Resetting Test User Credentials" -ForegroundColor Cyan
+Write-Host "============================================" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Test User Credentials:" -ForegroundColor Green
+Write-Host "  Super Admin: admin@exits-lms.com / admin123" -ForegroundColor Cyan
+Write-Host "  Demo User:   demo@exits-lms.com / demo123" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "You can reset passwords anytime by running:" -ForegroundColor Gray
+Write-Host "  node backend/scripts/reset-password.js" -ForegroundColor Gray
+Write-Host ""
+
 Write-Host ""

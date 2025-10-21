@@ -343,6 +343,25 @@ const createTables = async () => {
       );
     `);
 
+    // Role Menus junction table for menu-based access control
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS role_menus (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+        menu_id UUID NOT NULL REFERENCES menus(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(role_id, menu_id)
+      );
+    `);
+
+    // Create index for faster lookups
+    await db.query(`
+      CREATE INDEX IF NOT EXISTS idx_role_menus_role_id ON role_menus(role_id);
+    `);
+    await db.query(`
+      CREATE INDEX IF NOT EXISTS idx_role_menus_menu_id ON role_menus(menu_id);
+    `);
+
     // Create indexes for performance
     await db.query(`
       CREATE INDEX IF NOT EXISTS idx_users_tenant_id ON users(tenant_id);

@@ -17,8 +17,8 @@ router.use(authenticate);
 router.use(auditLoggerMiddleware);
 
 // Super Admin routes (platform scope)
-router.get('/', checkScope('platform'), checkPermission('manage_users'), userController.getAllUsers);
-router.post('/', checkScope('platform'), checkPermission('manage_users'), userController.createUser);
+router.get('/', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.getAllUsers);
+router.post('/', authenticate, checkScope('platform'), checkPermission('manage_users'), userController.createUser);
 
 // Activity logs route (must be before /:id to avoid route collision)
 router.get('/activity', checkScope('platform'), checkPermission('manage_users'), userController.getActivityLogs);

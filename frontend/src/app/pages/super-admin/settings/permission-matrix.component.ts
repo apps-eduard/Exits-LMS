@@ -416,6 +416,107 @@ export class PermissionMatrixComponent implements OnInit {
   }
 
   getScopeIcon(scope: string): string {
-    return scope === 'platform' ? '🏢' : '�';
+    return scope === 'platform' ? '🏢' : '📁';
+  }
+
+  // New methods for hierarchical menu display
+  getParentMenuName(menuId: string): string {
+    const menu = this.allMenus().find(m => m.id === menuId);
+    if (!menu?.parentMenuId) return '';
+    const parent = this.allMenus().find(m => m.id === menu.parentMenuId);
+    return parent?.name || '';
+  }
+
+  getMenuHierarchyLevel(menuId: string): number {
+    let level = 0;
+    let currentMenuId = menuId;
+    const visited = new Set<string>();
+
+    while (currentMenuId && !visited.has(currentMenuId)) {
+      visited.add(currentMenuId);
+      const menu = this.allMenus().find(m => m.id === currentMenuId);
+      if (menu?.parentMenuId) {
+        level++;
+        currentMenuId = menu.parentMenuId;
+      } else {
+        break;
+      }
+    }
+    return level;
+  }
+
+  getMenusGroupedByParent(): MenuGroup[] {
+    const grouped = new Map<'platform' | 'tenant', Menu[]>();
+
+    // First group by scope
+    this.allMenus().forEach(menu => {
+      if (!grouped.has(menu.scope)) {
+        grouped.set(menu.scope, []);
+      }
+      grouped.get(menu.scope)!.push(menu);
+    });
+
+    // Then within each scope, group by parent and sort
+    return Array.from(grouped.entries())
+      .map(([scope, menus]) => {
+        // Separate parent and child menus
+        const parentMenus = menus.filter(m => !m.parentMenuId).sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+        const flatMenus: Menu[] = [];
+
+        // Add parents first, then their children
+        parentMenus.forEach(parent => {
+          flatMenus.push(parent);
+          const children = menus
+            .filter(m => m.parentMenuId === parent.id)
+            .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+          flatMenus.push(...children);
+        });
+
+        return {
+          scope,
+          menus: flatMenus
+        };
+      })
+      .sort((a, b) => a.scope === 'platform' ? -1 : 1);
+  }
+
+  getHierarchyIndent(menuId: string): string {
+    const level = this.getMenuHierarchyLevel(menuId);
+    return 'ml-' + (level * 4);
+  }
+
+  getHierarchyPaddingClass(menuId: string): string {
+    const level = this.getMenuHierarchyLevel(menuId);
+    return `pl-${(level * 2) + 4}`;
+  }
+
+  getHierarchyIcon(menuId: string): string {
+    const level = this.getMenuHierarchyLevel(menuId);
+    if (level === 0) {
+      return this.isParentMenu(menuId) ? '📁' : '📄';
+    } else if (level === 1) {
+      return '└─ ';
+    } else {
+      return '   └─ ';
+    }
+  }
+
+  shouldHighlightAsParent(menuId: string): boolean {
+    return this.isParentMenu(menuId);
+  }
+
+  shouldHighlightAsChild(menuId: string): boolean {
+    return this.isChildMenu(menuId);
+  }
+
+  getParentChildDisplayName(menu: Menu): string {
+    const level = this.getMenuHierarchyLevel(menu.id);
+    if (level === 0 && this.isParentMenu(menu.id)) {
+      return `${menu.name} (Parent)`;
+    } else if (level > 0) {
+      const parentName = this.getParentMenuName(menu.id);
+      return `${menu.name} (Child of: ${parentName})`;
+    }
+    return menu.name;
   }
 }

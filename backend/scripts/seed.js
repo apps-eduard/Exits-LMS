@@ -364,6 +364,58 @@ const seedData = async () => {
       console.log('   Password: demo123');
     }
 
+    // ============================================
+    // ROLE-MENU ASSIGNMENT LOGIC
+    // ============================================
+    
+    // Assign menus to roles for menu-based access control
+    try {
+      // Get all menus and roles
+      const menus = await db.query(`SELECT id, scope, name FROM menus;`);
+      const allRoles = await db.query(`SELECT id, name, scope FROM roles;`);
+      
+      if (menus.rows.length > 0 && allRoles.rows.length > 0) {
+        console.log('🔗 Assigning menus to roles...');
+        
+        // Platform roles: assign all platform scope menus
+        const platformRoles = allRoles.rows.filter(r => r.scope === 'platform');
+        const platformMenus = menus.rows.filter(m => m.scope === 'platform');
+        
+        for (const role of platformRoles) {
+          for (const menu of platformMenus) {
+            await db.query(
+              `INSERT INTO role_menus (role_id, menu_id)
+               VALUES ($1, $2)
+               ON CONFLICT DO NOTHING`,
+              [role.id, menu.id]
+            );
+          }
+          console.log(`  ✓ ${role.name}: ${platformMenus.length} platform menus assigned`);
+        }
+        
+        // Tenant roles: assign all tenant scope menus
+        const tenantRoles = allRoles.rows.filter(r => r.scope === 'tenant');
+        const tenantMenus = menus.rows.filter(m => m.scope === 'tenant');
+        
+        for (const role of tenantRoles) {
+          for (const menu of tenantMenus) {
+            await db.query(
+              `INSERT INTO role_menus (role_id, menu_id)
+               VALUES ($1, $2)
+               ON CONFLICT DO NOTHING`,
+              [role.id, menu.id]
+            );
+          }
+          console.log(`  ✓ ${role.name}: ${tenantMenus.length} tenant menus assigned`);
+        }
+        
+        const totalAssignments = await db.query(`SELECT COUNT(*) as count FROM role_menus;`);
+        console.log(`✅ Role-menu assignments complete: ${totalAssignments.rows[0].count} total assignments`);
+      }
+    } catch (error) {
+      console.warn('⚠️  Warning: Role-menu assignment encountered an issue (menus may not be seeded yet)', error.message);
+    }
+
     console.log('✅ Database seeded successfully');
     process.exit(0);
   } catch (error) {

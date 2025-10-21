@@ -97,6 +97,12 @@ const checkScope = (requiredScope) => {
 
     console.log(`[RBAC] Checking scope: ${requiredScope} for user: ${req.user.email}, current scope: ${req.user.roleScope}`);
 
+    // Allow Super Admin to bypass scope checks
+    if (req.user.roleName === 'Super Admin' && req.user.roleScope === 'platform') {
+      console.log(`[RBAC] ✅ Super Admin bypass - scope check passed`);
+      return next();
+    }
+
     if (req.user.roleScope !== requiredScope) {
       console.log(`[RBAC] ❌ Scope mismatch. Required: ${requiredScope}, Current: ${req.user.roleScope}`);
       return res.status(403).json({ 
