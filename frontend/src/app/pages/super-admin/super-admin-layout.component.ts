@@ -4,11 +4,13 @@ import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/rou
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { MenuService, NavSection } from '../../core/services/menu.service';
+import { ComingSoonService } from '../../core/services/coming-soon.service';
+import { ComingSoonModalComponent } from '../../shared/components/coming-soon-modal.component';
 
 @Component({
   selector: 'app-super-admin-layout',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet, ComingSoonModalComponent],
   templateUrl: './super-admin-layout.component.html',
   styleUrl: './super-admin-layout.component.scss'
 })
@@ -24,11 +26,30 @@ export class SuperAdminLayoutComponent implements OnInit {
   // Dynamic navigation structure - loaded from backend
   readonly navSections = signal<NavSection[]>([]);
 
+  // Coming soon features - routes that should show the modal
+  private readonly comingSoonRoutes = [
+    '/super-admin/metrics',
+    '/super-admin/errors',
+    '/super-admin/jobs',
+    '/super-admin/notifications',
+    '/super-admin/alerts',
+    '/super-admin/announcements',
+    '/super-admin/subscriptions',
+    '/super-admin/plans',
+    '/super-admin/invoices',
+    '/super-admin/payments',
+    '/super-admin/analytics',
+    '/super-admin/reports/revenue',
+    '/super-admin/reports/user-activity',
+    '/super-admin/reports/tenant-usage'
+  ];
+
   constructor(
     public authService: AuthService,
     public themeService: ThemeService,
     private router: Router,
-    private menuService: MenuService
+    private menuService: MenuService,
+    public comingSoonService: ComingSoonService
   ) {}
 
   ngOnInit(): void {
@@ -133,5 +154,49 @@ export class SuperAdminLayoutComponent implements OnInit {
   getUserInitials(): string {
     if (!this.user) return 'SA';
     return `${this.user.firstName?.charAt(0) || ''}${this.user.lastName?.charAt(0) || ''}`.toUpperCase();
+  }
+
+  /**
+   * Handle menu item click - check if it's a coming soon feature
+   */
+  handleMenuClick(event: Event, route: string | undefined): void {
+    // Guard against undefined routes
+    if (!route) return;
+    
+    // Extract base route without query params
+    const baseRoute = route.split('?')[0];
+    
+    if (this.comingSoonRoutes.includes(baseRoute)) {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      // Map route to feature key
+      const featureKey = this.getFeatureKeyFromRoute(baseRoute);
+      this.comingSoonService.showComingSoon(featureKey);
+    }
+  }
+
+  /**
+   * Map route to feature key for coming soon modal
+   */
+  private getFeatureKeyFromRoute(route: string): string {
+    const routeMap: Record<string, string> = {
+      '/super-admin/metrics': 'performance-metrics',
+      '/super-admin/errors': 'error-logs',
+      '/super-admin/jobs': 'background-jobs',
+      '/super-admin/notifications': 'notifications',
+      '/super-admin/alerts': 'alerts',
+      '/super-admin/announcements': 'announcements',
+      '/super-admin/subscriptions': 'subscriptions',
+      '/super-admin/plans': 'subscription-plans',
+      '/super-admin/invoices': 'invoices',
+      '/super-admin/payments': 'payments',
+      '/super-admin/analytics': 'system-analytics',
+      '/super-admin/reports/revenue': 'revenue-reports',
+      '/super-admin/reports/user-activity': 'user-activity-reports',
+      '/super-admin/reports/tenant-usage': 'tenant-usage-reports'
+    };
+    
+    return routeMap[route] || 'default';
   }
 }
